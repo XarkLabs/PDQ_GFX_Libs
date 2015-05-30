@@ -153,10 +153,11 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 	// NOTE: initB and initR(tabcolor) are here for compatibility (but both just call begin()).
 	// NOTE: You must set the ST7735 chip version using ST7735_CHIPSET in "PDQ_ST7735_config.h" file (in sketch folder)
 	static void inline initB() __attribute__((always_inline))			{ begin(); }	// compatibility alias for begin
-	static void inline initR(uint8_t tabcolor) __attribute__((always_inline))	{ begin(); }	// compatibility alias for begin
+	static void inline initR(uint8_t tabcolor) __attribute__((always_inline))	{ (void)tabcolor; begin(); }	// compatibility alias for begin
 
 	static void setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 	static void pushColor(uint16_t color);
+	static void pushColor(uint16_t color, int16_t count);
 
 	// Pass 8-bit (each) R,G,B, get back 16-bit packed color
 	static INLINE uint16_t color565(uint8_t r, uint8_t g, uint8_t b)
@@ -443,10 +444,8 @@ PDQ_ST7735::PDQ_ST7735() : PDQ_GFX<PDQ_ST7735>(ST7735_TFTWIDTH, ST7735_TFTHEIGHT
 {
 	// must reference these functions from C++ or they will be stripped by linker (called from inline asm)
 	uint8_t dummy;
-	dummy = pgm_read_byte(delay10);
-	dummy = pgm_read_byte(delay13);
-	dummy = pgm_read_byte(delay15);
-	dummy = pgm_read_byte(delay17);
+	if (&dummy == NULL || pgm_read_byte(delay10) || pgm_read_byte(delay13) || pgm_read_byte(delay15) || pgm_read_byte(delay17))
+		dummy = 0;
 }
 
 // Companion code to the above tables.  Reads and issues
@@ -712,6 +711,15 @@ void PDQ_ST7735::pushColor(uint16_t color)
 	spi_begin();
 
 	spiWrite16_preCmd(color);
+
+	spi_end();
+}
+
+void PDQ_ST7735::pushColor(uint16_t color, int16_t count)
+{
+	spi_begin();
+
+	spiWrite16(color, count);
 
 	spi_end();
 }

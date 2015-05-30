@@ -46,7 +46,6 @@
 #include <PDQ_GFX.h>
 
 #include <avr/pgmspace.h>
-#include <SPI.h>
 
 #if !defined(ILI9341_CS_PIN) || !defined(ILI9341_DC_PIN)
 #error Oops!  You need to #include "PDQ_ILI9341_config.h" (modified with your pin configuration and options) from your sketch before #include "PDQ_ILI9341.h".
@@ -54,12 +53,13 @@
 
 #include <PDQ_FastPin.h>
 
-#if !defined(AVR_HARDWARE_SPI)
-#error Oops!  Currently hardware SPI is required.  Bother Xark if you would like USI or bit-bang SPI supported.
-#endif
-
+#if !defined(__AVR_ATtiny85__) && !defined(__AVR_ATtiny45__)
 #define INLINE		inline
 #define INLINE_OPT	__attribute__((always_inline))
+#else
+#define INLINE
+#define INLINE_OPT
+#endif
 
 // Color definitions
 enum
@@ -81,7 +81,7 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 	// For datasheet see https://www.adafruit.com/products/1480
  	enum
 	{
-		ILI9341_NOP		= 0x00,
+		ILI9341_NOP			= 0x00,
 		ILI9341_SWRESET		= 0x01,
 		ILI9341_RDDID		= 0x04,
 		ILI9341_RDDST		= 0x09,
@@ -154,7 +154,7 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 		ILI9341_MADCTL_MY	= 0x80,	// bit 7 = 0 for top -> bottom, 1 for bottom -> top
 
 		// delay indicator bit for commandList()
-		DELAY			= 0x80
+		DELAY				= 0x80
 	};
 
 	// higher-level routines
@@ -162,6 +162,7 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 	static void inline begin(void);
 	static void setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 	static void pushColor(uint16_t color);
+	static void pushColor(uint16_t color, int16_t cnt);
 
 	// Pass 8-bit (each) R,G,B, get back 16-bit packed color
 	static INLINE uint16_t color565(uint8_t r, uint8_t g, uint8_t b)
@@ -195,7 +196,7 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 	// set CS back to low (LCD selected)
 	static inline void spi_begin() __attribute__((always_inline))
 	{
-#if ILI9341_SAVE_SPCR
+#if ILI9341_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
 		swap(save_SPCR, SPCR);	// swap initial/current SPCR settings
 #endif
 		FastPin<ILI9341_CS_PIN>::lo();		// CS <= LOW (selected)
@@ -206,11 +207,12 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 	static inline void spi_end() __attribute__((always_inline))
 	{
 		FastPin<ILI9341_CS_PIN>::hi();		// CS <= HIGH (deselected)
-#if ILI9341_SAVE_SPCR
+#if ILI9341_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
 		swap(SPCR, save_SPCR);	// swap current/initial SPCR settings
 #endif
 	}
 
+#if defined(AVR_HARDWARE_SPI)
 	// 10 cycle delay (including "call")
 	static void delay10() __attribute__((noinline)) __attribute__((naked))
 	{
@@ -361,6 +363,130 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 			: 
 		);
 	}
+	
+#else	// bit-bang
+#if defined(__AVR_ATtiny85__) || defined(__AVR_ATtiny45__)
+	// USI hardware assisted
+	static void spiWrite(uint8_t data) __attribute__((noinline))
+	{
+		USIDR = data;
+		__asm__ __volatile__
+		(
+			"	out %[spi],%[clkp0]\n"	// MSB
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"	// LSB
+			"	out %[spi],%[clkp1]\n"
+			: 
+			: [spi] "i" (_SFR_IO_ADDR(USICR)), [clkp0] "a" ((uint8_t)((1<<USIWM0)|(0<<USICS0)|(1<<USITC))), [clkp1] "a" ((uint8_t)((1<<USIWM0)|(0<<USICS0)|(1<<USITC)|(1<<USICLK)))
+			:
+		);
+	}
+	static void spiWrite16(uint16_t data) __attribute__((noinline))
+	{
+		USIDR = data>>8;
+		__asm__ __volatile__
+		(
+			"	out %[spi],%[clkp0]\n"	// MSB
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"	// LSB
+			"	out %[spi],%[clkp1]\n"
+			: 
+			: [spi] "i" (_SFR_IO_ADDR(USICR)), [clkp0] "a" ((uint8_t)((1<<USIWM0)|(0<<USICS0)|(1<<USITC))), [clkp1] "a" ((uint8_t)((1<<USIWM0)|(0<<USICS0)|(1<<USITC)|(1<<USICLK)))
+			:
+		);
+
+		USIDR = data&0xff;
+		__asm__ __volatile__
+		(
+			"	out %[spi],%[clkp0]\n"	// MSB
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"
+			"	out %[spi],%[clkp1]\n"
+			"	out %[spi],%[clkp0]\n"	// LSB
+			"	out %[spi],%[clkp1]\n"
+			: 
+			: [spi] "i" (_SFR_IO_ADDR(USICR)), [clkp0] "a" ((uint8_t)((1<<USIWM0)|(0<<USICS0)|(1<<USITC))), [clkp1] "a" ((uint8_t)((1<<USIWM0)|(0<<USICS0)|(1<<USITC)|(1<<USICLK)))
+			:
+		);
+	}
+#else
+	static void spiWrite(uint8_t data) __attribute__((noinline))
+	{
+		// Fast SPI bitbang swiped from LPD8806 library
+		for(uint8_t bit = 0x80; bit; bit >>= 1)
+		{
+			if (data & bit)
+				FastPin<ILI9341_MOSI_PIN>::hi();
+			else
+				FastPin<ILI9341_MOSI_PIN>::lo();
+
+			FastPin<ILI9341_SCLK_PIN>::hi();
+			FastPin<ILI9341_SCLK_PIN>::lo();
+		}
+	}
+	static void spiWrite16(uint16_t data) __attribute__((noinline))
+	{
+		spiWrite(data >> 8);
+		spiWrite(data & 0xff);
+	}
+#endif
+	static INLINE void spiWrite_preCmd(uint8_t data) INLINE_OPT
+	{
+		spiWrite(data);
+	}
+	static INLINE void spiWrite16_preCmd(uint16_t data) INLINE_OPT
+	{
+		spiWrite16(data);
+	}
+	static INLINE void spiWrite16_lineDraw(uint16_t data) INLINE_OPT
+	{
+		spiWrite16(data);
+	}
+	static INLINE void spiWrite16(uint16_t data, int16_t count) INLINE_OPT
+	{
+		while (count-- > 0)
+			spiWrite16(data);
+	}
+	static inline void delay10()	{ }
+	static inline void delay13()	{ }
+	static inline void delay15()	{ }
+	static inline void delay17()	{ }
+#endif
+
 	// write SPI byte with RS (aka D/C) pin set low to indicate a command byte (and then reset back to high when done)
 	static INLINE void writeCommand(uint8_t data) INLINE_OPT
 	{
@@ -387,7 +513,7 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 		writeCommand(ILI9341_RAMWR); 		// write to RAM
 	}
 
-#if ILI9341_SAVE_SPCR
+#if ILI9341_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
 	static volatile uint8_t	save_SPCR;	// initial SPCR value/saved SPCR value (swapped in spi_begin/spi_end)
 #endif
 };
@@ -408,7 +534,7 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
   MIT license, all text above must be included in any redistribution
  ****************************************************/
 
-#if ILI9341_SAVE_SPCR
+#if ILI9341_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
 // static data needed by base class
 volatile uint8_t PDQ_ILI9341::save_SPCR;
 #endif
@@ -416,12 +542,12 @@ volatile uint8_t PDQ_ILI9341::save_SPCR;
 // Constructor when using hardware SPI.
 PDQ_ILI9341::PDQ_ILI9341() : PDQ_GFX<PDQ_ILI9341>(ILI9341_TFTWIDTH, ILI9341_TFTHEIGHT)
 {
+#if defined(AVR_HARDWARE_SPI)
 	// must reference these functions from C++ or they will be stripped by linker (called from inline asm)
 	uint8_t dummy;
-	dummy = pgm_read_byte(delay10);
-	dummy = pgm_read_byte(delay13);
-	dummy = pgm_read_byte(delay15);
-	dummy = pgm_read_byte(delay17);
+	if (&dummy == NULL || pgm_read_byte(delay10) || pgm_read_byte(delay13) || pgm_read_byte(delay15) || pgm_read_byte(delay17))
+		dummy = 0;
+#endif
 }
 
 // Companion code to the above tables.  Reads and issues
@@ -455,23 +581,37 @@ void PDQ_ILI9341::commandList(const uint8_t *addr)
       
 void PDQ_ILI9341::begin(void)
 {
+	
 	// set CS and RS pin directions to output
 	FastPin<ILI9341_CS_PIN>::setOutput();
 	FastPin<ILI9341_DC_PIN>::setOutput();
+#if !defined(AVR_HARDWARE_SPI)
+	#if defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
+		USICR = (0<<USISIE)|(0<<USIOIE)|(0<<USIWM1)|(1<<USIWM0)|(0<<USICS1)|(1<<USICS0)|(1<<USICLK)|(0<<USITC);
+	#endif
+	#if defined (ILI9341_MISO_PIN)
+		FastPin<ILI9341_MISO_PIN>::setInput();
+	#endif
+	FastPin<ILI9341_MOSI_PIN>::setOutput();
+	FastPin<ILI9341_SCLK_PIN>::setOutput();
+	FastPin<ILI9341_MOSI_PIN>::lo();
+	FastPin<ILI9341_SCLK_PIN>::lo();
+#endif
 	
 	FastPin<ILI9341_CS_PIN>::hi();		// CS <= HIGH (deselected, so no spurious data)
 	FastPin<ILI9341_DC_PIN>::hi();		// RS <= HIGH (default data byte)
 
-#if ILI9341_SAVE_SPCR
-	uint8_t oldSPCR = SPCR;	// save initial SPCR settings
-#endif	
-
+#if defined(AVR_HARDWARE_SPI)
+	#if ILI9341_SAVE_SPCR
+		uint8_t oldSPCR = SPCR;	// save initial SPCR settings
+	#endif	
 	SPI.begin();
 	SPI.setBitOrder(MSBFIRST);
 	SPI.setDataMode(SPI_MODE0);
 	SPI.setClockDivider(SPI_CLOCK_DIV2);	// 8 MHz (full! speed!) [1 byte every 18 cycles]
+#endif
 	
-#if ILI9341_SAVE_SPCR
+#if ILI9341_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
 	save_SPCR = SPCR;	// save SPCR settings
 	SPCR = oldSPCR;		// restore previous SPCR settings (spi_begin/spi_end will switch between the two)
 #endif	
@@ -545,6 +685,15 @@ void PDQ_ILI9341::pushColor(uint16_t color)
 	spi_begin();
 
 	spiWrite16_preCmd(color);
+
+	spi_end();
+}
+
+void PDQ_ILI9341::pushColor(uint16_t color, int16_t count)
+{
+	spi_begin();
+
+	spiWrite16(color, count);
 
 	spi_end();
 }
@@ -655,6 +804,9 @@ void PDQ_ILI9341::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t 
 // Bresenham's algorithm - thx Wikipedia
 void PDQ_ILI9341::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
 {
+#if 0 && defined(__AVR_ATtiny85__) || defined(__AVR_ATtiny45__)
+	drawLine_(x0, y0, x1, y1, color);
+#else
 	int8_t steep = abs(y1 - y0) > abs(x1 - x0);
 	if (steep)
 	{
@@ -689,6 +841,51 @@ void PDQ_ILI9341::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint1
 	
 	uint8_t setaddr = 1;
 
+#if 0 && defined(__AVR_ATtiny85__) && !defined(__AVR_ATtiny45__)
+	int16_t	end = steep ? _height-1 : _width-1;
+	if (x1 > end)
+		x1 = end;
+
+	for (; x0 <= x1; x0++)
+	{
+		if ((x0 >= 0) && (y0 >= 0) && (y0 <= end))
+			break;
+
+		err -= dy;
+		if (err < 0)
+		{
+			err += dx;
+			y0 += ystep;
+		}
+	}
+
+	if (x0 > x1)
+		return;
+
+	spi_begin();
+
+	for (; x0 <= x1; x0++)
+	{
+		if (setaddr)
+		{
+			if (steep)
+				setAddrWindow_(y0, x0, y0, end+1);
+			else
+				setAddrWindow_(x0, y0, end+1, y0);
+			setaddr = 0;
+		}
+		spiWrite16_lineDraw(color);
+		err -= dy;
+		if (err < 0)
+		{
+			y0 += ystep;
+			if ((y0 < 0) || (y0 > end))
+				break;
+			err += dx;
+			setaddr = 1;
+		}
+	}
+#else
 	if (steep)	// y increments every iteration (y0 is x-axis, and x0 is y-axis)
 	{
 		if (x1 >= _height)
@@ -729,6 +926,7 @@ void PDQ_ILI9341::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint1
 				err += dx;
 				setaddr = 1;
 			}
+#if defined(AVR_HARDWARE_SPI)
 			else
 			{
 				__asm__ __volatile__
@@ -737,6 +935,7 @@ void PDQ_ILI9341::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint1
 					: : :
 				);
 			}
+#endif
 		}
 	}
 	else	// x increments every iteration (x0 is x-axis, and y0 is y-axis)
@@ -779,6 +978,7 @@ void PDQ_ILI9341::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint1
 				err += dx;
 				setaddr = 1;
 			}
+#if defined(AVR_HARDWARE_SPI)
 			else
 			{
 				__asm__ __volatile__
@@ -787,10 +987,13 @@ void PDQ_ILI9341::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint1
 					: : :
 				);
 			}
+#endif
 		}
 	}
+#endif
 	
 	spi_end();
+#endif
 }
 
 void PDQ_ILI9341::setRotation(uint8_t m)

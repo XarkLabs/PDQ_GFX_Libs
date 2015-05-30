@@ -25,8 +25,8 @@
 //  * = Typically only 3.3V safe logic-line (unless board has level converter [ala Adafruit]). Be careful with 5V!
 
 #define	ILI9340_CS_PIN		10			// <= /CS pin (chip-select, LOW to get attention of ST7735, HIGH and it ignores SPI bus)
-#define	ILI9340_DC_PIN		8			// <= DC pin (1=data or 0=command indicator line) also called RS
-#define	ILI9340_RST_PIN		9			// <= RST pin (optional)
+#define	ILI9340_DC_PIN		9			// <= DC pin (1=data or 0=command indicator line) also called RS
+#define	ILI9340_RST_PIN		8			// <= RST pin (optional)
 // (other pins used are dictated by AVR HW SPI used as shown above)
 
 // other PDQ library options

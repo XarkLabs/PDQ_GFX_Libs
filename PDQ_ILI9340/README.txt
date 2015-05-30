@@ -1,3 +1,5 @@
+NOTE: This file is from the Adafruit_ILI9340 library (which PDQ_IL9340 was based on).  Thanks Adafruit!
+
 This is a library for the Adafruit 2.2" SPI display.
 This library works with the Adafruit 2.2" TFT Breakout w/SD card
   ----> http://www.adafruit.com/products/1480

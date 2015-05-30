@@ -1,6 +1,15 @@
-This is a library for the Adafruit 2.2" SPI display.
-This library works with the Adafruit 2.2" TFT Breakout w/SD card
-  ----> http://www.adafruit.com/products/1480
+NOTE: This file is from the Adafruit_ST7735 library (which PDQ_ST7735 was based on).  Thanks Adafruit!
+
+This is a library for the Adafruit 1.8" SPI display.
+This library works with the Adafruit 1.8" TFT Breakout w/SD card
+  ----> http://www.adafruit.com/products/358
+The 1.8" TFT shield
+  ----> https://www.adafruit.com/product/802
+The 1.44" TFT breakout
+  ----> https://www.adafruit.com/product/2088
+as well as Adafruit raw 1.8" TFT display
+  ----> http://www.adafruit.com/products/618
+
  
 Check out the links above for our tutorials and wiring diagrams.
 These displays use SPI to communicate, 4 or 5 pins are required
@@ -12,8 +21,8 @@ products from Adafruit!
 Written by Limor Fried/Ladyada for Adafruit Industries.
 MIT license, all text above must be included in any redistribution
 
-To download. click the DOWNLOADS button in the top right corner, rename the uncompressed folder Adafruit_ILI9340. Check that the Adafruit_ILI9340 folder contains Adafruit_ILI9340.cpp and Adafruit_ILI9340.
+To download. click the DOWNLOADS button in the top right corner, rename the uncompressed folder Adafruit_ST7735. Check that the Adafruit_ST7735 folder contains Adafruit_ST7735.cpp and Adafruit_ST7735.
 
-Place the Adafruit_ILI9340 library folder your <arduinosketchfolder>/libraries/ folder. You may need to create the libraries subfolder if its your first library. Restart the IDE
+Place the Adafruit_ST7735 library folder your <arduinosketchfolder>/libraries/ folder. You may need to create the libraries subfolder if its your first library. Restart the IDE
 
 Also requires the Adafruit_GFX library for Arduino.
