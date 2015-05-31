@@ -7,7 +7,7 @@ This is a replacement "re-mix" of the Adafruit GFX library and associated hardwa
 
 Currently supported are ILI9340, ILI9341, ST7735 and ST7781 LCD drivers (and compatible chipsets).
 
-It is between 3.5x and 14x faster than the Adafruit libraries for SPI LCDs, but it aims to be completely "sketch compatible" (so you
+It is between 2.5x and 12x faster than the Adafruit libraries for SPI LCDs, but it aims to be completely "sketch compatible" (so you
 can easily speed up your sketches that are using Adafruit's library).  You just need to change the name of the #include and "tft"
 object.  A version of the Adafruit "benchmark" example is included (PDQ_graphicsbest.ino) with each driver library.
 
