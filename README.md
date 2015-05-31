@@ -1,7 +1,7 @@
 PDQ_GFX_Libs
 ============
 
-An optimized fork of Adafruit's GFX library (and drivers) for Arduino (AVR).
+An optimized fork of Adafruit's GFX library (and LCD drivers) for Arduino (AVR).
 
 This is a replacement "re-mix" of the Adafruit GFX library and associated hardware drivers.
 
@@ -27,3 +27,4 @@ New features in latest commit ("v1.0.0" 2015-05-30) include:
  * Tidied up files and made sure all drivers were updated with latest tweaks.
  
 Suggestions, issues, bugs and comments welcome.  Via https://hackaday.io/Xark or visit #Arduino channel on Freenode.net IRC.
+I have also posted a write-up about the development of this library at http://hackaday.io/Xark (describes most of the optimizations done).

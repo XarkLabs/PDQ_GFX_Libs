@@ -390,7 +390,12 @@ uint32_t testHaD()
 			if (cnt & 0x80)
 				cnt = ((cnt & 0x7f) << 8) | pgm_read_byte(cmp++);
 
-			tft.pushColor(curcolor, cnt);
+#if defined(_PDQ_ILI9341H_)
+			tft.pushColor(curcolor, cnt);	// PDQ_GFX has count
+#else
+			while (cnt--)
+				tft.pushColor(curcolor);	// Adafruit needs a loop
+#endif
 			curcolor ^= color;
 		}
 	}

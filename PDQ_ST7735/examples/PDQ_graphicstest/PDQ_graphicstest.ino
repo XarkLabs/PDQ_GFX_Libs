@@ -43,7 +43,7 @@ void setup()
 
 // AF:	tft.initR(INITR_18BLACKTAB);	// AF: initialize SPI/LCD
 
-#if defined(_PDQ_IST7735H_)
+#if defined(_PDQ_ST7735H_)
 	Serial.println(F("PDQ ST7735 1.8\" SPI TFT Test!     ")); 
 #else
  	Serial.println(F("Adafruit ST7735 1.8\" SPI TFT Test!")); 
@@ -352,7 +352,12 @@ uint32_t testHaD()
 			if (cnt & 0x80)
 				cnt = ((cnt & 0x7f) << 8) | pgm_read_byte(cmp++);
 
-			tft.pushColor(curcolor, cnt);
+#if defined(_PDQ_ST7735H_)
+			tft.pushColor(curcolor, cnt);	// PDQ_GFX has count
+#else
+			while (cnt--)
+				tft.pushColor(curcolor);	// Adafruit needs a loop
+#endif
 			curcolor ^= color;
 		}
 	}
