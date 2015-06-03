@@ -352,6 +352,30 @@ _DEFPIN_AVR(68, 64, K); _DEFPIN_AVR(69, 128, K);
 #define SPI_SELECT 53
 #define AVR_HARDWARE_SPI
 
+#elif defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__)
+// Xark: Add ATMega644,644P,1284 and 1284P (using pinout from http://maniacbug.wordpress.com/2011/11/27/arduino-on-atmega1284p-4/)
+
+_IO(A); _IO(B); _IO(C); _IO(D);
+
+_DEFPIN_AVR( 0, (1<<0), B); _DEFPIN_AVR( 1, (1<<1), B); _DEFPIN_AVR( 2, (1<<2), B); _DEFPIN_AVR( 3, (1<<3), B); 
+_DEFPIN_AVR( 4, (1<<4), B); _DEFPIN_AVR( 5, (1<<5), B); _DEFPIN_AVR( 6, (1<<6), B); _DEFPIN_AVR( 7, (1<<7), B); 
+
+_DEFPIN_AVR( 8, (1<<0), D); _DEFPIN_AVR( 9, (1<<1), D); _DEFPIN_AVR(10, (1<<2), D); _DEFPIN_AVR(11, (1<<3), D); 
+_DEFPIN_AVR(12, (1<<4), D); _DEFPIN_AVR(13, (1<<5), D); _DEFPIN_AVR(14, (1<<6), D); _DEFPIN_AVR(15, (1<<7), D); 
+
+_DEFPIN_AVR(16, (1<<0), C); _DEFPIN_AVR(17, (1<<1), C); _DEFPIN_AVR(18, (1<<2), C); _DEFPIN_AVR(19, (1<<3), C); 
+_DEFPIN_AVR(20, (1<<4), C); _DEFPIN_AVR(21, (1<<5), C); _DEFPIN_AVR(22, (1<<6), C); _DEFPIN_AVR(23, (1<<7), C); 
+
+_DEFPIN_AVR(24, (1<<0), A); _DEFPIN_AVR(25, (1<<1), A); _DEFPIN_AVR(26, (1<<2), A); _DEFPIN_AVR(27, (1<<3), A); 
+_DEFPIN_AVR(28, (1<<4), A); _DEFPIN_AVR(29, (1<<5), A); _DEFPIN_AVR(30, (1<<6), A); _DEFPIN_AVR(31, (1<<7), A); 
+
+#define SPI_DATA 5
+#define SPI_CLOCK 7
+#define SPI_SELECT 4
+#define AVR_HARDWARE_SPI
+
+// Leonardo, teensy, blinkm
+#elif defined(__AVR_ATmega32U4__) && defined(CORE_TEENSY)
 // Leonardo, teensy, blinkm
 #elif defined(__AVR_ATmega32U4__) && defined(CORE_TEENSY)
 

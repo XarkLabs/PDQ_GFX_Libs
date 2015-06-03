@@ -1,14 +1,11 @@
 //
 // This excellent template library is from FastLED http://fastled.io
 //
-// I considered writing something similar, but FastPin seemed perfect and
-// I was able to "drop it in" in a few minutes (replacing direct AVR port access).
-// The version used below was:
-// https://github.com/FastLED/FastLED/blob/e9a0f9df660739b6c929572abc1a49207a9eb8f8/fastpin.h
-// Only modifications were for spelling in comments (other than adding this note
-// and the license here).  Good stuff. :-)  Thanks FastLED people! 
+// I was considering writing something similar, but FastPin seemed perfect.
 //
-// Here is the license from FastLED followed by the FastPin template library:
+// Thanks FastLED people!  Here is the license from FastLED followed by the
+// header
+//
 
 /*
 
@@ -40,7 +37,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include<avr/io.h>
 
-// Arduino.h needed for convenience functions digitalPinToPort/BitMask/portOutputRegister and the pinMode methods.
+// Arduino.h needed for convinience functions digitalPinToPort/BitMask/portOutputRegister and the pinMode methods.
 #include<Arduino.h>
 
 #define NO_PIN 255 
@@ -130,9 +127,9 @@ public:
 	InputPin(int pin) : Pin(pin) { setInput(); }
 };
 
-/// The simplest level of Pin class.  This relies on runtime functions during initialization to get the port/pin mask for the pin.  Most
+/// The simplest level of Pin class.  This relies on runtime functions durinig initialization to get the port/pin mask for the pin.  Most
 /// of the accesses involve references to these static globals that get set up.  This won't be the fastest set of pin operations, but it
-/// will provide pin level access on pretty much all Arduino environments.  In addition, it includes some methods to help optimize access in
+/// will provide pin level access on pretty much all arduino environments.  In addition, it includes some methods to help optimize access in
 /// various ways.  Namely, the versions of hi, lo, and fastset that take the port register as a passed in register variable (saving a global
 /// dereference), since these functions are aggressively inlined, that can help collapse out a lot of extraneous memory loads/dereferences.
 /// 
@@ -179,7 +176,7 @@ template<uint8_t PIN> uint8_t FastPin<PIN>::sPinMask;
 template<uint8_t PIN> volatile uint8_t *FastPin<PIN>::sPort;
 
 /// Class definition for a Pin where we know the port registers at compile time for said pin.  This allows us to make
-/// a lot of optimizations, as the inlined hi/lo methods will devolve to a single I/O register write/bitset.  
+/// a lot of optimizations, as the inlined hi/lo methods will devolve to a single io register write/bitset.  
 template<uint8_t PIN, uint8_t _MASK, typename _PORT, typename _DDR, typename _PIN> class _AVRPIN { 
 public:
 	typedef volatile uint8_t * port_ptr_t;
@@ -204,9 +201,9 @@ public:
 	inline static port_t mask() __attribute__ ((always_inline)) { return _MASK; }
 };
 
-/// Template definition for Teensy 3.0 style ARM pins, providing direct access to the various GPIO registers.  Note that this
+/// Template definition for teensy 3.0 style ARM pins, providing direct access to the various GPIO registers.  Note that this
 /// uses the full port GPIO registers.  In theory, in some way, bit-band register access -should- be faster, however I have found
-/// that something about the way GCC does register allocation results in the bit-band code being slower.  It will need more fine tuning.
+/// that something about the way gcc does register allocation results in the bit-band code being slower.  It will need more fine tuning.
 template<uint8_t PIN, uint32_t _MASK, typename _PDOR, typename _PSOR, typename _PCOR, typename _PTOR, typename _PDIR, typename _PDDR> class _ARMPIN { 
 public:
 	typedef volatile uint32_t * port_ptr_t;
@@ -233,7 +230,7 @@ public:
 	inline static port_t mask() __attribute__ ((always_inline)) { return _MASK; }
 };
 
-/// Template definition for Teensy 3.0 style ARM pins using bit banding, providing direct access to the various GPIO registers.  GCC 
+/// Template definition for teensy 3.0 style ARM pins using bit banding, providing direct access to the various GPIO registers.  GCC 
 /// does a poor job of optimizing around these accesses so they are not being used just yet.
 template<uint8_t PIN, int _BIT, typename _PDOR, typename _PSOR, typename _PCOR, typename _PTOR, typename _PDIR, typename _PDDR> class _ARMPIN_BITBAND { 
 public:
@@ -355,6 +352,30 @@ _DEFPIN_AVR(68, 64, K); _DEFPIN_AVR(69, 128, K);
 #define SPI_SELECT 53
 #define AVR_HARDWARE_SPI
 
+#elif defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__)
+// Xark: Add ATMega644,644P,1284 and 1284P (using pinout from http://maniacbug.wordpress.com/2011/11/27/arduino-on-atmega1284p-4/)
+
+_IO(A); _IO(B); _IO(C); _IO(D);
+
+_DEFPIN_AVR( 0, (1<<0), B); _DEFPIN_AVR( 1, (1<<1), B); _DEFPIN_AVR( 2, (1<<2), B); _DEFPIN_AVR( 3, (1<<3), B); 
+_DEFPIN_AVR( 4, (1<<4), B); _DEFPIN_AVR( 5, (1<<5), B); _DEFPIN_AVR( 6, (1<<6), B); _DEFPIN_AVR( 7, (1<<7), B); 
+
+_DEFPIN_AVR( 8, (1<<0), D); _DEFPIN_AVR( 9, (1<<1), D); _DEFPIN_AVR(10, (1<<2), D); _DEFPIN_AVR(11, (1<<3), D); 
+_DEFPIN_AVR(12, (1<<4), D); _DEFPIN_AVR(13, (1<<5), D); _DEFPIN_AVR(14, (1<<6), D); _DEFPIN_AVR(15, (1<<7), D); 
+
+_DEFPIN_AVR(16, (1<<0), C); _DEFPIN_AVR(17, (1<<1), C); _DEFPIN_AVR(18, (1<<2), C); _DEFPIN_AVR(19, (1<<3), C); 
+_DEFPIN_AVR(20, (1<<4), C); _DEFPIN_AVR(21, (1<<5), C); _DEFPIN_AVR(22, (1<<6), C); _DEFPIN_AVR(23, (1<<7), C); 
+
+_DEFPIN_AVR(24, (1<<0), A); _DEFPIN_AVR(25, (1<<1), A); _DEFPIN_AVR(26, (1<<2), A); _DEFPIN_AVR(27, (1<<3), A); 
+_DEFPIN_AVR(28, (1<<4), A); _DEFPIN_AVR(29, (1<<5), A); _DEFPIN_AVR(30, (1<<6), A); _DEFPIN_AVR(31, (1<<7), A); 
+
+#define SPI_DATA 5
+#define SPI_CLOCK 7
+#define SPI_SELECT 4
+#define AVR_HARDWARE_SPI
+
+// Leonardo, teensy, blinkm
+#elif defined(__AVR_ATmega32U4__) && defined(CORE_TEENSY)
 // Leonardo, teensy, blinkm
 #elif defined(__AVR_ATmega32U4__) && defined(CORE_TEENSY)
 
