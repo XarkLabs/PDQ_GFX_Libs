@@ -218,10 +218,14 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 	{
 		__asm__ __volatile__
 		(
-							// +4 (call to get here)
+									// +4 (call to get here)
+#if !defined(__AVR_HAVE_RAMPD__)	
 			"	adiw	r24,0\n"	// +2 (2-cycle NOP)
-			"1:	ret\n"			// +4 
-							// = 4 + 2 + 4 (10 cycles)
+#else
+			"	nop\n"				// +1 (1-cycle NOP)
+#endif
+			"	ret\n"				// +4 (or +5 on >64KB AVR with RAMPD reg)
+									// = 10 cycles
 			: : : 
 		);
 	}
@@ -231,11 +235,14 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 	{
 		__asm__ __volatile__
 		(
-							// +4 (call to get here)
+									// +4 (call to get here)
 			"	adiw	r24,0\n"	// +2 (2-cycle NOP)
-			"	jmp	1f\n"		// +3
-			"1:	ret\n"			// +4 
-							// = 4 + 2 + 3 + 4 (13 cycles)
+			"	adiw	r24,0\n"	// +2 (2-cycle NOP)
+#if !defined(__AVR_HAVE_RAMPD__)	
+			"	nop\n"				// +1 (1-cycle NOP)
+#endif
+			"	ret\n"				// +4 (or +5 on >64KB AVR with RAMPD reg)
+									// = 13 cycles
 			: : : 
 		);
 	}
@@ -245,10 +252,15 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 	{
 		__asm__ __volatile__
 		(
-							// +4 (call to get here)
-			"	rcall	1f\n"		// +3+4
-			"1:	ret\n"			// +4 
-							// = 4 + 3+4 + 4 (15 cycles)
+									// +4 (call to get here)
+			"	adiw	r24,0\n"	// +2 (2-cycle NOP)
+			"	adiw	r24,0\n"	// +2 (2-cycle NOP)
+			"	adiw	r24,0\n"	// +2 (2-cycle NOP)
+#if !defined(__AVR_HAVE_RAMPD__)	
+			"	nop\n"				// +1 (1-cycle NOP)
+#endif
+			"	ret\n"				// +4 (or +5 on >64KB AVR with RAMPD reg)
+									// = 15 cycles
 			: : : 
 		);
 	}
@@ -258,11 +270,16 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 	{
 		__asm__ __volatile__
 		(
-							// +4 (call to get here)
+									// +4 (call to get here)
 			"	adiw	r24,0\n"	// +2 (2-cycle NOP)
-			"	rcall	1f\n"		// +3+4
-			"1:	ret\n"			// +4 
-							// = 4 + 1 + 3+4 + 4 (17 cycles)
+			"	adiw	r24,0\n"	// +2 (2-cycle NOP)
+			"	adiw	r24,0\n"	// +2 (2-cycle NOP)
+			"	adiw	r24,0\n"	// +2 (2-cycle NOP)
+#if !defined(__AVR_HAVE_RAMPD__)	
+			"	nop\n"				// +1 (2-cycle NOP)
+#endif
+			"	ret\n"				// +4 (or +5 on >64KB AVR with RAMPD reg)
+									// = 17 cycles
 			: : : 
 		);
 	}
@@ -544,9 +561,10 @@ PDQ_ILI9340::PDQ_ILI9340() : PDQ_GFX<PDQ_ILI9340>(ILI9340_TFTWIDTH, ILI9340_TFTH
 {
 #if defined(AVR_HARDWARE_SPI)
 	// must reference these functions from C++ or they will be stripped by linker (called from inline asm)
-	uint8_t dummy;
-	if (&dummy == NULL || pgm_read_byte(delay10) || pgm_read_byte(delay13) || pgm_read_byte(delay15) || pgm_read_byte(delay17))
-		dummy = 0;
+	delay10();
+	delay13();
+	delay15();
+	delay17();
 #endif
 }
 
