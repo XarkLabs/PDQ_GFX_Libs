@@ -57,8 +57,15 @@ Also requires the Adafruit_GFX library for Arduino. https://github.com/adafruit/
 
 #include <avr/pgmspace.h>
 
+#if defined(USE_PORT_ACCESS)
 #if !defined(PORT_DATALO6)
 #error Oops!  You need to #include "PDQ_ST7781_config.h" (modified with your pin configuration and options) from your sketch before #include "PDQ_ST7781.h".
+#endif
+#else
+#include <PDQ_FastPin.h>	// for pin access
+#if !defined(LCD_D0)
+#error Oops!  You need to #include "PDQ_ST7781_config.h" (modified with your pin configuration and options) from your sketch before #include "PDQ_ST7781.h".
+#endif
 #endif
 
 #if !defined(__AVR_ATtiny85__) && !defined(__AVR_ATtiny45__)
@@ -163,7 +170,7 @@ class PDQ_ST7781 : public PDQ_GFX<PDQ_ST7781>
 	static void inline begin(void);
 	static void setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 	static void pushColor(uint16_t color);
-	static void pushColor(uint16_t color, int16_t count);
+	static void pushColor(uint16_t color, int count);
 
 	// Pass 8-bit (each) R,G,B, get back 16-bit packed color
 	static INLINE uint16_t color565(uint8_t r, uint8_t g, uint8_t b)
@@ -176,9 +183,9 @@ class PDQ_ST7781 : public PDQ_GFX<PDQ_ST7781>
 	}
 	
 	// required driver primitive methods (all except drawPixel can call generic version in PDQ_GFX with "_" postfix).
-	static void drawPixel(int16_t x, int16_t y, uint16_t color);
-	static void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
-	static void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
+	static void drawPixel(int x, int y, uint16_t color);
+	static void drawFastVLine(int x, int y, int h, uint16_t color);
+	static void drawFastHLine(int x, int y, int w, uint16_t color);
 	static void setRotation(uint8_t r);
 	static void invertDisplay(boolean i);
 
@@ -187,8 +194,8 @@ class PDQ_ST7781 : public PDQ_GFX<PDQ_ST7781>
 		fillScreen_(color);			// call generic version
 	}
 
-	static void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
-	static void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
+	static void drawLine(int x0, int y0, int x1, int y1, uint16_t color);
+	static void fillRect(int x, int y, int w, int h, uint16_t color);
 
 	// === lower-level internal routines =========
 	static void commandList(const struct reg_cmd *cmd, uint8_t numCommands);
@@ -196,51 +203,102 @@ class PDQ_ST7781 : public PDQ_GFX<PDQ_ST7781>
 	// set CS back to low (LCD selected)
 	static inline void lcd_begin() __attribute__((always_inline))
 	{
+#if defined(USE_PORT_ACCESS)
 		PORT_DATAHI2 &= ~CS_BIT;		// CS <= LOW (selected)
+#else
+	FastPin<LCD_CS>::lo();				// CS <= LOW (selected)
+#endif
 	}
 
 	// reset CS back to high (LCD unselected)
 	static inline void lcd_end() __attribute__((always_inline))
 	{
+#if defined(USE_PORT_ACCESS)
 		PORT_DATAHI2 |= CS_BIT;		// CS <= HIGH (deselected)
+#else
+	FastPin<LCD_CS>::hi();			// CS <= HIGH (deselected)
+#endif
 	}
+	
+#if !defined(USE_PORT_ACCESS)
+	static void writeByte(uint8_t byte) __attribute__ ((noinline))	// too big to inline
+	{
+		FastPin<LCD_WR>::lo();
 
-	// write SPI byte with RS assumed low indicating a data byte
+		FastPin<LCD_D7>::lo();
+		FastPin<LCD_D6>::lo();
+		FastPin<LCD_D5>::lo();
+		FastPin<LCD_D4>::lo();
+		FastPin<LCD_D3>::lo();
+		FastPin<LCD_D2>::lo();
+		FastPin<LCD_D1>::lo();
+		FastPin<LCD_D0>::lo();
+
+		if (byte & (1<< 7)) { FastPin<LCD_D7>::hi(); }
+		if (byte & (1<< 6)) { FastPin<LCD_D6>::hi(); }
+		if (byte & (1<< 5)) { FastPin<LCD_D5>::hi(); }
+		if (byte & (1<< 4)) { FastPin<LCD_D4>::hi(); }
+		if (byte & (1<< 3)) { FastPin<LCD_D3>::hi(); }
+		if (byte & (1<< 2)) { FastPin<LCD_D2>::hi(); }
+		if (byte & (1<< 1)) { FastPin<LCD_D1>::hi(); }
+		if (byte & (1<< 0)) { FastPin<LCD_D0>::hi(); }
+
+		FastPin<LCD_WR>::hi();
+	}
+#endif
+
+	// write 16-bit data
 	static INLINE void writeData(uint16_t data) INLINE_OPT
 	{
+#if defined(USE_PORT_ACCESS)
 		PORT_DATAHI2 = RD_BIT | /*WR_BIT |*/ RS_BIT | /*CS_BIT |*/ ((((uint8_t)(data>>8))>>6)&DATAHI2_MASK);
 		PORT_DATALO6 = (((uint8_t)(data>>8))<<2);
 		PORT_DATAHI2 |= WR_BIT;
 		PORT_DATAHI2 = RD_BIT | /*WR_BIT |*/ RS_BIT | /*CS_BIT |*/ ((((uint8_t)data)>>6)&DATAHI2_MASK);
 		PORT_DATALO6 = (((uint8_t)data)<<2);
 		PORT_DATAHI2 |= WR_BIT;
+#else
+		writeByte(data>>8);
+		writeByte(data);
+#endif
 	} 
 
-	static INLINE void writeData(uint16_t data, int16_t count)
+	// repeat 16-bit data
+	static INLINE void writeData(uint16_t data, int count)
 	{
 		while (count-- > 0)
 		{
+#if defined(USE_PORT_ACCESS)
 			PORT_DATAHI2 = RD_BIT | /*WR_BIT |*/ RS_BIT | /*CS_BIT |*/ ((((uint8_t)(data>>8))>>6)&DATAHI2_MASK);
 			PORT_DATALO6 = (((uint8_t)(data>>8))<<2);
 			PORT_DATAHI2 |= WR_BIT;
 			PORT_DATAHI2 = RD_BIT | /*WR_BIT |*/ RS_BIT | /*CS_BIT |*/ ((((uint8_t)data)>>6)&DATAHI2_MASK);
 			PORT_DATALO6 = (((uint8_t)data)<<2);
 			PORT_DATAHI2 |= WR_BIT;
+#else
+			writeData(data);
+#endif
 		}
 	} 
 
-	// write SPI byte with RS assumed low indicating a data byte
+	// write command byte
 	static INLINE void writeCommand(uint8_t command) INLINE_OPT
 	{
+#if defined(USE_PORT_ACCESS)
 		PORT_DATAHI2 = RD_BIT /*| WR_BIT | RS_BIT | CS_BIT |*/ | 0;
 		PORT_DATALO6 = 0;
 		PORT_DATAHI2 |= WR_BIT;
 		PORT_DATAHI2 = RD_BIT /*| WR_BIT | RS_BIT | CS_BIT |*/ | (command>>6);
 		PORT_DATALO6 = (command<<2);
 		PORT_DATAHI2 = RD_BIT | WR_BIT | RS_BIT /*| CS_BIT*/ | (command>>6);
+#else
+		FastPin<LCD_RS>::lo();
+		writeData(command);
+		FastPin<LCD_RS>::hi();
+#endif
 	} 
 
-	// write SPI byte with RS (aka D/C) pin set low to indicate a command byte (and then reset back to high when done)
+	// write command byte followed by 16-bit data
 	static INLINE void writeRegister(uint8_t reg, uint16_t data) INLINE_OPT
 	{
 		writeCommand(reg);
@@ -250,8 +308,8 @@ class PDQ_ST7781 : public PDQ_GFX<PDQ_ST7781>
 	// internal version that does not lcd_begin()/lcd_end()
 	static INLINE void setAddrWindow_(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) INLINE_OPT
 	{
-		int16_t	x, y;
-#if defined(FIXEED_ROTATION)
+		int	x, y;
+#if defined(FIXED_ROTATION)
 		switch (FIXED_ROTATION)
 #else
 		switch (rotation)
@@ -350,12 +408,42 @@ void PDQ_ST7781::commandList(const struct reg_cmd *cmd, uint8_t numCommands)
       
 void PDQ_ST7781::begin(void)
 {
+#if defined(USE_PORT_ACCESS)
 	// set pin directions to output
 	DDR_DATALO6 = DATALO6_MASK;
 	DDR_DATAHI2 = RD_BIT|WR_BIT|RS_BIT|CS_BIT|DATAHI2_MASK;
 	
 	PORT_DATALO6 = 0;				// write to bits 0 & 1 UART ignored
 	PORT_DATAHI2 = RD_BIT|WR_BIT|RS_BIT|CS_BIT;	// write to bits 6 & 7 XTAL ignored
+#else
+
+	FastPin<LCD_D0>::lo();
+	FastPin<LCD_D0>::setOutput();
+	FastPin<LCD_D1>::lo();
+	FastPin<LCD_D1>::setOutput();
+	FastPin<LCD_D2>::lo();
+	FastPin<LCD_D2>::setOutput();
+	FastPin<LCD_D3>::lo();
+	FastPin<LCD_D3>::setOutput();
+	FastPin<LCD_D4>::lo();
+	FastPin<LCD_D4>::setOutput();
+	FastPin<LCD_D5>::lo();
+	FastPin<LCD_D5>::setOutput();
+	FastPin<LCD_D6>::lo();
+	FastPin<LCD_D6>::setOutput();
+	FastPin<LCD_D7>::lo();
+	FastPin<LCD_D7>::setOutput();
+	FastPin<LCD_CS>::hi();
+	FastPin<LCD_CS>::setOutput();
+	FastPin<LCD_RS>::hi();
+	FastPin<LCD_RS>::setOutput();
+	FastPin<LCD_WR>::hi();
+	FastPin<LCD_WR>::setOutput();
+#if defined(LCD_RD)
+	FastPin<LCD_RD>::hi();
+	FastPin<LCD_RD>::setOutput();
+#endif
+#endif
 
 	lcd_begin();
 	
@@ -445,7 +533,7 @@ void PDQ_ST7781::pushColor(uint16_t color)
 	lcd_end();
 }
 
-void PDQ_ST7781::pushColor(uint16_t color, int16_t count)
+void PDQ_ST7781::pushColor(uint16_t color, int count)
 {
 	lcd_begin();
 
@@ -454,7 +542,7 @@ void PDQ_ST7781::pushColor(uint16_t color, int16_t count)
 	lcd_end();
 }
 
-void PDQ_ST7781::drawPixel(int16_t x, int16_t y, uint16_t color)
+void PDQ_ST7781::drawPixel(int x, int y, uint16_t color)
 {
 	if ((x < 0) ||(x >= _width) || (y < 0) || (y >= _height))
 		return;
@@ -468,7 +556,7 @@ void PDQ_ST7781::drawPixel(int16_t x, int16_t y, uint16_t color)
 	lcd_end();
 }
 
-void PDQ_ST7781::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
+void PDQ_ST7781::drawFastVLine(int x, int y, int h, uint16_t color)
 {
 	// clipping
 	if ((x < 0) || (x >= _width) || (y >= _height))
@@ -500,7 +588,7 @@ void PDQ_ST7781::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
 }
 
 
-void PDQ_ST7781::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
+void PDQ_ST7781::drawFastHLine(int x, int y, int w, uint16_t color)
 {
 	// clipping
 	if ((x >= _width) || (y < 0) || (y >= _height))
@@ -528,7 +616,7 @@ void PDQ_ST7781::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
 	lcd_end();
 }
 
-void PDQ_ST7781::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
+void PDQ_ST7781::fillRect(int x, int y, int w, int h, uint16_t color)
 {
 	// rudimentary clipping (drawChar w/big text requires this)
 	if ((x >= _width) || (y >= _height))
@@ -562,7 +650,7 @@ void PDQ_ST7781::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t c
 }
 
 // Bresenham's algorithm - thx Wikipedia
-void PDQ_ST7781::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
+void PDQ_ST7781::drawLine(int x0, int y0, int x1, int y1, uint16_t color)
 {
 	int8_t steep = abs(y1 - y0) > abs(x1 - x0);
 	if (steep)
@@ -580,11 +668,11 @@ void PDQ_ST7781::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16
 	if (x1 < 0)
 		return;
 
-	int16_t dx, dy;
+	int dx, dy;
 	dx = x1 - x0;
 	dy = abs(y1 - y0);
 
-	int16_t err = dx / 2;
+	int err = dx / 2;
 	int8_t ystep;
 
 	if (y0 < y1)

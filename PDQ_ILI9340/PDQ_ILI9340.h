@@ -66,7 +66,7 @@ enum
 {
 	ILI9340_BLACK	= 0x0000,
 	ILI9340_BLUE	= 0x001F,
-	ILI9340_RED	= 0xF800,
+	ILI9340_RED		= 0xF800,
 	ILI9340_GREEN	= 0x07E0,
 	ILI9340_CYAN	= 0x07FF,
 	ILI9340_MAGENTA = 0xF81F,
@@ -81,7 +81,7 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 	// For datasheet see https://www.adafruit.com/products/1480
  	enum
 	{
-		ILI9340_NOP		= 0x00,
+		ILI9340_NOP			= 0x00,
 		ILI9340_SWRESET		= 0x01,
 		ILI9340_RDDID		= 0x04,
 		ILI9340_RDDST		= 0x09,
@@ -154,7 +154,7 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 		ILI9340_MADCTL_MY	= 0x80,	// bit 7 = 0 for top -> bottom, 1 for bottom -> top
 
 		// delay indicator bit for commandList()
-		DELAY			= 0x80
+		DELAY				= 0x80
 	};
 
 	// higher-level routines
@@ -162,7 +162,7 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 	static void inline begin(void);
 	static void setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 	static void pushColor(uint16_t color);
-	static void pushColor(uint16_t color, int16_t cnt);
+	static void pushColor(uint16_t color, int cnt);
 
 	// Pass 8-bit (each) R,G,B, get back 16-bit packed color
 	static INLINE uint16_t color565(uint8_t r, uint8_t g, uint8_t b)
@@ -175,9 +175,9 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 	}
 	
 	// required driver primitive methods (all except drawPixel can call generic version in PDQ_GFX with "_" postfix).
-	static void drawPixel(int16_t x, int16_t y, uint16_t color);
-	static void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
-	static void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
+	static void drawPixel(int x, int y, uint16_t color);
+	static void drawFastVLine(int x, int y, int h, uint16_t color);
+	static void drawFastHLine(int x, int y, int w, uint16_t color);
 	static void setRotation(uint8_t r);
 	static void invertDisplay(boolean i);
 
@@ -186,8 +186,8 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 		fillScreen_(color);			// call generic version
 	}
 
-	static void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
-	static void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
+	static void drawLine(int x0, int y0, int x1, int y1, uint16_t color);
+	static void fillRect(int x, int y, int w, int h, uint16_t color);
 
 	// === lower-level internal routines =========
 	static void commandList(const uint8_t *addr);
@@ -358,7 +358,7 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 	}
 
 	// normal SPI write with minimal hand-tuned delay (assuming max DIV2 SPI rate)
-	static INLINE void spiWrite16(uint16_t data, int16_t count) INLINE_OPT
+	static INLINE void spiWrite16(uint16_t data, int count) INLINE_OPT
 	{
 		uint8_t temp;
 		__asm__ __volatile__
@@ -493,7 +493,7 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 	{
 		spiWrite16(data);
 	}
-	static INLINE void spiWrite16(uint16_t data, int16_t count) INLINE_OPT
+	static INLINE void spiWrite16(uint16_t data, int count) INLINE_OPT
 	{
 		while (count-- > 0)
 			spiWrite16(data);
@@ -706,7 +706,7 @@ void PDQ_ILI9340::pushColor(uint16_t color)
 	spi_end();
 }
 
-void PDQ_ILI9340::pushColor(uint16_t color, int16_t count)
+void PDQ_ILI9340::pushColor(uint16_t color, int count)
 {
 	spi_begin();
 
@@ -715,7 +715,7 @@ void PDQ_ILI9340::pushColor(uint16_t color, int16_t count)
 	spi_end();
 }
 
-void PDQ_ILI9340::drawPixel(int16_t x, int16_t y, uint16_t color)
+void PDQ_ILI9340::drawPixel(int x, int y, uint16_t color)
 {
 	if ((x < 0) ||(x >= _width) || (y < 0) || (y >= _height))
 		return;
@@ -729,7 +729,7 @@ void PDQ_ILI9340::drawPixel(int16_t x, int16_t y, uint16_t color)
 	spi_end();
 }
 
-void PDQ_ILI9340::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
+void PDQ_ILI9340::drawFastVLine(int x, int y, int h, uint16_t color)
 {
 	// clipping
 	if ((x < 0) || (x >= _width) || (y >= _height))
@@ -758,7 +758,7 @@ void PDQ_ILI9340::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
 }
 
 
-void PDQ_ILI9340::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
+void PDQ_ILI9340::drawFastHLine(int x, int y, int w, uint16_t color)
 {
 	// clipping
 	if ((x >= _width) || (y < 0) || (y >= _height))
@@ -786,7 +786,7 @@ void PDQ_ILI9340::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
 	spi_end();
 }
 
-void PDQ_ILI9340::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
+void PDQ_ILI9340::fillRect(int x, int y, int w, int h, uint16_t color)
 {
 	// rudimentary clipping (drawChar w/big text requires this)
 	if ((x >= _width) || (y >= _height))
@@ -819,7 +819,7 @@ void PDQ_ILI9340::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t 
 }
 
 // Bresenham's algorithm - thx Wikipedia
-void PDQ_ILI9340::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
+void PDQ_ILI9340::drawLine(int x0, int y0, int x1, int y1, uint16_t color)
 {
 #if 0 && defined(__AVR_ATtiny85__) || defined(__AVR_ATtiny45__)
 	drawLine_(x0, y0, x1, y1, color);
@@ -840,11 +840,11 @@ void PDQ_ILI9340::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint1
 	if (x1 < 0)
 		return;
 
-	int16_t dx, dy;
+	int dx, dy;
 	dx = x1 - x0;
 	dy = abs(y1 - y0);
 
-	int16_t err = dx / 2;
+	int err = dx / 2;
 	int8_t ystep;
 
 	if (y0 < y1)
@@ -859,7 +859,7 @@ void PDQ_ILI9340::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint1
 	uint8_t setaddr = 1;
 
 #if 0 && defined(__AVR_ATtiny85__) && !defined(__AVR_ATtiny45__)
-	int16_t	end = steep ? _height-1 : _width-1;
+	int	end = steep ? _height-1 : _width-1;
 	if (x1 > end)
 		x1 = end;
 

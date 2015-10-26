@@ -24,9 +24,11 @@
 PDQ_ST7781 tft;							// PDQ: create LCD object (using pins in "PDQ_ST7781_config.h")
 
 // These are used to get information about static SRAM and flash memory sizes
+#if defined(__AVR__)
 extern "C" char __data_start[];			// start of SRAM data
 extern "C" char _end[];					// end of SRAM data (used to check amount of SRAM this program's variables use)
 extern "C" char __data_load_end[];		// end of FLASH (used to check amount of Flash this program's code and data uses)
+#endif
 
 void setup()
 {
@@ -40,10 +42,13 @@ void setup()
 
 void loop(void)
 {
+#if defined(__AVR__)
 	Serial.print(F(__DATE__ " " __TIME__ " - Flash=0x"));
 	Serial.print((uint16_t)__data_load_end, HEX);
 	Serial.print(F(" RAM=0x"));
 	Serial.println((uint16_t)_end - (uint16_t)__data_start, HEX);
+#endif
+
 	Serial.println(F("Benchmark                Time (microseconds)"));
 
 	uint32_t usecHaD = testHaD();
@@ -139,10 +144,12 @@ void loop(void)
 	tft.setTextSize(1);
 	tft.println(F(""));
 	tft.setTextColor(tft.color565(0x80, 0x80, 0x80));
+#if defined(__AVR__)
 	tft.print(F("  Memory Used:  Flash=0x"));
 	tft.print((uint16_t)__data_load_end, HEX);
 	tft.print(F(" RAM=0x"));
 	tft.println((uint16_t)_end - (uint16_t)__data_start, HEX);
+#endif
 	tft.println(F(""));
 	tft.println(F(""));
 

@@ -1,7 +1,9 @@
 //
-// PDQ_ST7781 configuration
+// PDQ_ST7781 configuration (using 8-bit "parallel" interface with 16-bit data)
 //
 // You need to include this file above #include "PDQ_ST7781.h" in your sketch.
+
+#if 0	// set to 1 for SeeedStudio Touch Shield V1.0 PORT optimized version
 
 // Seeed Studio Touch Shield V1.0 pin usage:
 // D2 - LCD data bit 0
@@ -20,6 +22,8 @@
 // LCD Data Bit :    7    6    5    4    3    2    1    0
 // Uno port/pin :  PB1  PB0  PB7  PD6  PD5  PD4  PD3  PD2
 
+#define	USE_PORT_ACCESS
+
 #define PORT_DATALO6	PORTD	// PD7=D5 PD6=D4 PD5=D3 PD4=D2 PD3=D1 PD2=D0 x x
 #define DDR_DATALO6		DDRD
 #define DATALO6_MASK	0xfc
@@ -30,6 +34,24 @@
 #define CS_BIT			0x04
 #define RS_BIT			0x08
 #define WR_BIT			0x10
-#define RD_BIT			0x20
+#define RD_BIT			0x20	// read functionality is not used by this library
 
-#define	FIXED_ROTATION	0
+#else	// else, individually assignable pin version (but significantly slower)
+
+// set these below for your shield/breakout pins (Arduino "digitalWrite" numbering)
+#define LCD_D0			2
+#define LCD_D1			3
+#define LCD_D2			4
+#define LCD_D3			5
+#define LCD_D4			6
+#define LCD_D5			7
+#define LCD_D6			8
+#define LCD_D7			9
+#define LCD_CS			10
+#define LCD_RS			11		// sometimes called "DC"
+#define	LCD_WR			12
+#define	LCD_RD			13		// read functionality is not used by this library (comment this out if you don't have this pin)
+	
+#endif
+
+#define	FIXED_ROTATION	0		// 0 to 3 or comment-out for run-time rotation switching (slightly slower and bigger)

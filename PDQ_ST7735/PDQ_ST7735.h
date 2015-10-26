@@ -157,7 +157,7 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 
 	static void setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
 	static void pushColor(uint16_t color);
-	static void pushColor(uint16_t color, int16_t count);
+	static void pushColor(uint16_t color, int count);
 
 	// Pass 8-bit (each) R,G,B, get back 16-bit packed color
 	static INLINE uint16_t color565(uint8_t r, uint8_t g, uint8_t b)
@@ -170,9 +170,9 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 	}
 
 	// required driver primitive methods (all except drawPixel can call generic version in PDQ_GFX with "_" postfix).
-	static void drawPixel(int16_t x, int16_t y, uint16_t color);
-	static void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
-	static void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
+	static void drawPixel(int x, int y, uint16_t color);
+	static void drawFastVLine(int x, int y, int h, uint16_t color);
+	static void drawFastHLine(int x, int y, int w, uint16_t color);
 	static void setRotation(uint8_t r);
 	static void invertDisplay(boolean i);
 
@@ -181,8 +181,8 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 		fillScreen_(color);			// call generic version
 	}
 
-	static void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
-	static void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
+	static void drawLine(int x0, int y0, int x1, int y1, uint16_t color);
+	static void fillRect(int x, int y, int w, int h, uint16_t color);
 
 	// === lower-level internal routines =========
 	static void commandList(const uint8_t *addr);
@@ -352,7 +352,7 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 	}
 
 	// normal SPI write with minimal hand-tuned delay (assuming max DIV2 SPI rate)
-	static INLINE void spiWrite16(uint16_t data, int16_t count) INLINE_OPT
+	static INLINE void spiWrite16(uint16_t data, int count) INLINE_OPT
 	{
 		uint8_t temp;
 		__asm__ __volatile__
@@ -733,7 +733,7 @@ void PDQ_ST7735::pushColor(uint16_t color)
 	spi_end();
 }
 
-void PDQ_ST7735::pushColor(uint16_t color, int16_t count)
+void PDQ_ST7735::pushColor(uint16_t color, int count)
 {
 	spi_begin();
 
@@ -742,7 +742,7 @@ void PDQ_ST7735::pushColor(uint16_t color, int16_t count)
 	spi_end();
 }
 
-void PDQ_ST7735::drawPixel(int16_t x, int16_t y, uint16_t color)
+void PDQ_ST7735::drawPixel(int x, int y, uint16_t color)
 {
 	if ((x < 0) ||(x >= _width) || (y < 0) || (y >= _height))
 		return;
@@ -756,7 +756,7 @@ void PDQ_ST7735::drawPixel(int16_t x, int16_t y, uint16_t color)
 	spi_end();
 }
 
-void PDQ_ST7735::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
+void PDQ_ST7735::drawFastVLine(int x, int y, int h, uint16_t color)
 {
 	// clipping
 	if ((x < 0) || (x >= _width) || (y >= _height))
@@ -785,7 +785,7 @@ void PDQ_ST7735::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
 }
 
 
-void PDQ_ST7735::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
+void PDQ_ST7735::drawFastHLine(int x, int y, int w, uint16_t color)
 {
 	// clipping
 	if ((x >= _width) || (y < 0) || (y >= _height))
@@ -813,7 +813,7 @@ void PDQ_ST7735::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
 	spi_end();
 }
 
-void PDQ_ST7735::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
+void PDQ_ST7735::fillRect(int x, int y, int w, int h, uint16_t color)
 {
 	// rudimentary clipping (drawChar w/big text requires this)
 	if ((x >= _width) || (y >= _height))
@@ -846,7 +846,7 @@ void PDQ_ST7735::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t c
 }
 
 // Bresenham's algorithm - thx Wikipedia
-void PDQ_ST7735::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
+void PDQ_ST7735::drawLine(int x0, int y0, int x1, int y1, uint16_t color)
 {
 	int8_t steep = abs(y1 - y0) > abs(x1 - x0);
 	if (steep)
@@ -864,11 +864,11 @@ void PDQ_ST7735::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16
 	if (x1 < 0)
 		return;
 
-	int16_t dx, dy;
+	int dx, dy;
 	dx = x1 - x0;
 	dy = abs(y1 - y0);
 
-	int16_t err = dx / 2;
+	int err = dx / 2;
 	int8_t ystep;
 
 	if (y0 < y1)

@@ -8,7 +8,7 @@ template <class HW>
 class PDQ_GFX : public Print {
 
 public:
-	PDQ_GFX(int16_t w, int16_t h);	// Constructor (called by HW driver)
+	PDQ_GFX(int w, int h);	// Constructor (called by HW driver)
 
 	// Graphic primitives
 	// drawPixel MUST be defined by the driver subclass (and has no generic fall-back):
@@ -17,10 +17,10 @@ public:
 	// Drivers are required to have these functions (without "_" postfix), but can fall back to using
 	// these if needed (they should not be called directly with "_" postfix or it will bypass any
 	// device-optimized implementations).
-	static void drawLine_(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
-	static void drawFastVLine_(int16_t x, int16_t y, int16_t h, uint16_t color);
-	static void drawFastHLine_(int16_t x, int16_t y, int16_t w, uint16_t color);
-	static void fillRect_(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
+	static void drawLine_(int x0, int y0, int x1, int y1, uint16_t color);
+	static void drawFastVLine_(int x, int y, int h, uint16_t color);
+	static void drawFastHLine_(int x, int y, int w, uint16_t color);
+	static void fillRect_(int x, int y, int w, int h, uint16_t color);
 	static void fillScreen_(uint16_t color);
 
 	// These are usually overridden in the driver subclass to be useful (but not internally referenced)
@@ -28,25 +28,25 @@ public:
 	static void invertDisplay(boolean i);	// only if supported by driver
 	
 	// These exist in PDQ_GFX (and generally have no subclass override)
-	static void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
-	static void drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color);
-	static void drawCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername, uint16_t color);
-	static void fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color);
-	static void fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername, int16_t delta, uint16_t color);
-	static void drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color);
-	static void fillTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color);
-	static void drawRoundRect(int16_t x0, int16_t y0, int16_t w, int16_t h,	int16_t radius, uint16_t color);
-	static void fillRoundRect(int16_t x0, int16_t y0, int16_t w, int16_t h,	int16_t radius, uint16_t color);
-	static void drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color);
-	static void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size);
-	static inline void setCursor(int16_t x, int16_t y);
+	static void drawRect(int x, int y, int w, int h, uint16_t color);
+	static void drawCircle(int x0, int y0, int r, uint16_t color);
+	static void drawCircleHelper(int x0, int y0, int r, uint8_t cornername, uint16_t color);
+	static void fillCircle(int x0, int y0, int r, uint16_t color);
+	static void fillCircleHelper(int x0, int y0, int r, uint8_t cornername, int delta, uint16_t color);
+	static void drawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint16_t color);
+	static void fillTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint16_t color);
+	static void drawRoundRect(int x0, int y0, int w, int h,	int radius, uint16_t color);
+	static void fillRoundRect(int x0, int y0, int w, int h,	int radius, uint16_t color);
+	static void drawBitmap(int x, int y, const uint8_t *bitmap, int w, int h, uint16_t color);
+	static void drawChar(int x, int y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size);
+	static inline void setCursor(int x, int y);
 	static inline void setTextColor(uint16_t c);
 	static inline void setTextColor(uint16_t c, uint16_t bg);
 	static inline void setTextSize(uint8_t s);
 	static inline void setTextWrap(boolean w);
 
-	static inline int16_t width(void) __attribute__ ((always_inline))		{ return _width; }
-	static inline int16_t height(void) __attribute__ ((always_inline))		{ return _height; }
+	static inline int width(void) __attribute__ ((always_inline))		{ return _width; }
+	static inline int height(void) __attribute__ ((always_inline))		{ return _height; }
 	static inline uint8_t getRotation(void) __attribute__ ((always_inline))		{ return rotation; }
 
 	virtual size_t write(uint8_t);		// used by Arduino "Print.h" (and the one required virtual function)
@@ -61,9 +61,9 @@ public:
 	}
 
 protected:
-	static int16_t	WIDTH, HEIGHT;		// This is the 'raw' display w/h - never changes
-	static int16_t	_width, _height;	// Display w/h as modified by current rotation
-	static int16_t	cursor_x, cursor_y;
+	static int	WIDTH, HEIGHT;		// This is the 'raw' display w/h - never changes
+	static int	_width, _height;	// Display w/h as modified by current rotation
+	static int	cursor_x, cursor_y;
 	static uint16_t	textcolor, textbgcolor;
 	static uint8_t	textsize;
 	static uint8_t	wrap;			// If set, 'wrap' text at right edge of display
@@ -106,17 +106,17 @@ POSSIBILITY OF SUCH DAMAGE.
 extern const unsigned char font[] PROGMEM;
 
 template<class HW>
-int16_t		PDQ_GFX<HW>::WIDTH;		// This is the 'raw' display w/h - never changes
+int		PDQ_GFX<HW>::WIDTH;		// This is the 'raw' display w/h - never changes
 template<class HW>
-int16_t		PDQ_GFX<HW>::HEIGHT;
+int		PDQ_GFX<HW>::HEIGHT;
 template<class HW>
-int16_t		PDQ_GFX<HW>::_width;		// Display w/h as modified by current rotation
+int		PDQ_GFX<HW>::_width;		// Display w/h as modified by current rotation
 template<class HW>
-int16_t		PDQ_GFX<HW>::_height;
+int		PDQ_GFX<HW>::_height;
 template<class HW>
-int16_t		PDQ_GFX<HW>::cursor_x;
+int		PDQ_GFX<HW>::cursor_x;
 template<class HW>
-int16_t		PDQ_GFX<HW>::cursor_y;
+int		PDQ_GFX<HW>::cursor_y;
 template<class HW>
 uint16_t	PDQ_GFX<HW>::textcolor;
 template<class HW>
@@ -129,7 +129,7 @@ template<class HW>
 uint8_t		PDQ_GFX<HW>::wrap;			// If set, 'wrap' text at right edge of display
 
 template<class HW>
-PDQ_GFX<HW>::PDQ_GFX(int16_t w, int16_t h)
+PDQ_GFX<HW>::PDQ_GFX(int w, int h)
 {
 	WIDTH		= w;
 	HEIGHT		= h;
@@ -146,13 +146,13 @@ PDQ_GFX<HW>::PDQ_GFX(int16_t w, int16_t h)
 
 // Draw a circle outline
 template<class HW>
-void PDQ_GFX<HW>::drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
+void PDQ_GFX<HW>::drawCircle(int x0, int y0, int r, uint16_t color)
 {
-	int16_t f	= 1 - r;
-	int16_t ddF_x	= 1;
-	int16_t ddF_y	= -2 * r;
-	int16_t x	= 0;
-	int16_t y	= r;
+	int f	= 1 - r;
+	int ddF_x	= 1;
+	int ddF_y	= -2 * r;
+	int x	= 0;
+	int y	= r;
 
 	HW::drawPixel(x0  , y0+r, color);
 	HW::drawPixel(x0  , y0-r, color);
@@ -183,13 +183,13 @@ void PDQ_GFX<HW>::drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 }
 
 template<class HW>
-void PDQ_GFX<HW>::drawCircleHelper( int16_t x0, int16_t y0, int16_t r, uint8_t cornername, uint16_t color)
+void PDQ_GFX<HW>::drawCircleHelper( int x0, int y0, int r, uint8_t cornername, uint16_t color)
 {
-	int16_t f	= 1 - r;
-	int16_t ddF_x	= 1;
-	int16_t ddF_y	= -2 * r;
-	int16_t x	= 0;
-	int16_t y	= r;
+	int f	= 1 - r;
+	int ddF_x	= 1;
+	int ddF_y	= -2 * r;
+	int x	= 0;
+	int y	= r;
 
 	while (x < y)
 	{
@@ -226,7 +226,7 @@ void PDQ_GFX<HW>::drawCircleHelper( int16_t x0, int16_t y0, int16_t r, uint8_t c
 }
 
 template<class HW>
-void PDQ_GFX<HW>::fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
+void PDQ_GFX<HW>::fillCircle(int x0, int y0, int r, uint16_t color)
 {
 	HW::drawFastVLine(x0, y0-r, 2*r+1, color);
 	fillCircleHelper(x0, y0, r, 3, 0, color);
@@ -234,14 +234,14 @@ void PDQ_GFX<HW>::fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 
 // Used to do circles and roundrects
 template<class HW>
-void PDQ_GFX<HW>::fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername, int16_t delta, uint16_t color)
+void PDQ_GFX<HW>::fillCircleHelper(int x0, int y0, int r, uint8_t cornername, int delta, uint16_t color)
 {
 
-	int16_t f	= 1 - r;
-	int16_t ddF_x	= 1;
-	int16_t ddF_y	= -2 * r;
-	int16_t x	= 0;
-	int16_t y	= r;
+	int f	= 1 - r;
+	int ddF_x	= 1;
+	int ddF_y	= -2 * r;
+	int x	= 0;
+	int y	= r;
 
 	while (x < y)
 	{
@@ -270,7 +270,7 @@ void PDQ_GFX<HW>::fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t co
 
 // Bresenham's algorithm - thx Wikipedia
 template<class HW>
-void PDQ_GFX<HW>::drawLine_(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
+void PDQ_GFX<HW>::drawLine_(int x0, int y0, int x1, int y1, uint16_t color)
 {
 	int8_t steep = abs(y1 - y0) > abs(x1 - x0);
 	if (steep)
@@ -285,12 +285,12 @@ void PDQ_GFX<HW>::drawLine_(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint
 		swap(y0, y1);
 	}
 
-	int16_t dx, dy;
+	int dx, dy;
 	dx = x1 - x0;
 	dy = abs(y1 - y0);
 
-	int16_t err = dx / 2;
-	int16_t ystep;
+	int err = dx / 2;
+	int ystep;
 
 	if (y0 < y1)
 	{
@@ -321,24 +321,24 @@ void PDQ_GFX<HW>::drawLine_(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint
 }
 
 template<class HW>
-void PDQ_GFX<HW>::drawFastVLine_(int16_t x, int16_t y, int16_t h, uint16_t color)
+void PDQ_GFX<HW>::drawFastVLine_(int x, int y, int h, uint16_t color)
 {
 	// Used by driver when it has no special support
 	HW::drawLine(x, y, x, y+h-1, color);
 }
 
 template<class HW>
-void PDQ_GFX<HW>::drawFastHLine_(int16_t x, int16_t y, int16_t w, uint16_t color)
+void PDQ_GFX<HW>::drawFastHLine_(int x, int y, int w, uint16_t color)
 {
 	// Used by driver when it has no special support
 	HW::drawLine(x, y, x+w-1, y, color);
 }
 
 template<class HW>
-void PDQ_GFX<HW>::fillRect_(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
+void PDQ_GFX<HW>::fillRect_(int x, int y, int w, int h, uint16_t color)
 {
 	// Used by driver when it has no special support
-	for (int16_t i=x; i<x+w; i++)
+	for (int i=x; i<x+w; i++)
 	{
 		HW::drawFastVLine(i, y, h, color);
 	}
@@ -353,7 +353,7 @@ void PDQ_GFX<HW>::fillScreen_(uint16_t color)
 
 // Draw a rectangle
 template<class HW>
-void PDQ_GFX<HW>::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
+void PDQ_GFX<HW>::drawRect(int x, int y, int w, int h, uint16_t color)
 {
 	HW::drawFastHLine(x    ,  y    , w, color);
 	HW::drawFastHLine(x    ,  y+h-1, w, color);
@@ -363,7 +363,7 @@ void PDQ_GFX<HW>::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t 
 
 // Draw a rounded rectangle
 template<class HW>
-void PDQ_GFX<HW>::drawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r, uint16_t color)
+void PDQ_GFX<HW>::drawRoundRect(int x, int y, int w, int h, int r, uint16_t color)
 {
 	// smarter version
 	HW::drawFastHLine(x+r  , y    , w-2*r, color); // Top
@@ -379,7 +379,7 @@ void PDQ_GFX<HW>::drawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int1
 
 // Fill a rounded rectangle
 template<class HW>
-void PDQ_GFX<HW>::fillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r, uint16_t color)
+void PDQ_GFX<HW>::fillRoundRect(int x, int y, int w, int h, int r, uint16_t color)
 {
 	// smarter version
 	HW::fillRect(x+r, y, w-2*r, h, color);
@@ -391,7 +391,7 @@ void PDQ_GFX<HW>::fillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int1
 
 // Draw a triangle
 template<class HW>
-void PDQ_GFX<HW>::drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color)
+void PDQ_GFX<HW>::drawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint16_t color)
 {
 	HW::drawLine(x0, y0, x1, y1, color);
 	HW::drawLine(x1, y1, x2, y2, color);
@@ -400,9 +400,9 @@ void PDQ_GFX<HW>::drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, i
 
 // Fill a triangle
 template<class HW>
-void PDQ_GFX<HW>::fillTriangle( int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color)
+void PDQ_GFX<HW>::fillTriangle( int x0, int y0, int x1, int y1, int x2, int y2, uint16_t color)
 {
-	int16_t a, b, y, last;
+	int a, b, y, last;
 
 	// Sort coordinates by Y order (y2 >= y1 >= y0)
 	if (y0 > y1)
@@ -433,12 +433,12 @@ void PDQ_GFX<HW>::fillTriangle( int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
 		return;
 	}
 
-	int16_t	dx01 = x1 - x0;
-	int16_t	dy01 = y1 - y0;
-	int16_t	dx02 = x2 - x0;
-	int16_t	dy02 = y2 - y0;
-	int16_t	dx12 = x2 - x1;
-	int16_t	dy12 = y2 - y1;
+	int	dx01 = x1 - x0;
+	int	dy01 = y1 - y0;
+	int	dx02 = x2 - x0;
+	int	dy02 = y2 - y0;
+	int	dx12 = x2 - x1;
+	int	dy12 = y2 - y1;
 	int32_t	sa = 0;
 	int32_t	sb = 0;
 
@@ -489,9 +489,9 @@ void PDQ_GFX<HW>::fillTriangle( int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
 }
 
 template<class HW>
-void PDQ_GFX<HW>::drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
+void PDQ_GFX<HW>::drawBitmap(int x, int y, const uint8_t *bitmap, int w, int h, uint16_t color)
 {
-	int16_t i, j, byteWidth = (w + 7) / 8;
+	int i, j, byteWidth = (w + 7) / 8;
 
 	for (j = 0; j < h; j++)
 	{
@@ -532,7 +532,7 @@ size_t PDQ_GFX<HW>::write(uint8_t c)
 
 // Draw a character
 template<class HW>
-void PDQ_GFX<HW>::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size)
+void PDQ_GFX<HW>::drawChar(int x, int y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size)
 {
 	if ((x >= _width)  ||
 	    (y >= _height) ||
@@ -585,7 +585,7 @@ void PDQ_GFX<HW>::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color
 }
 
 template<class HW>
-void PDQ_GFX<HW>::setCursor(int16_t x, int16_t y)
+void PDQ_GFX<HW>::setCursor(int x, int y)
 {
 	cursor_x = x;
 	cursor_y = y;
