@@ -17,7 +17,7 @@ many other vendors.  These are commonly 128x128, 128x160 or 240x320 (but the lib
 I would also like to thank the excellent http://fastled.io/ project for creating the "FastPin.h" template header that allows
 for full speed GPIO while allowing the use of "friendly" Arduino pin numbering (it is included in the PDQ driver libraries).
 
-New features in latest commit (2016-04-09) include:
+New features in latest commit ("v1.1.5" 2016-04-09) include:
 
  * Synced core functions with Adafruit_GFX (few changes - I think their clipping is still broken [fixed in PDQ_GFX])
  * Support for new fonts as seen in Adafruit_GFX GitHub
