@@ -15,7 +15,7 @@
 // 1  VCC	  3.3V/5V	 3.3V/5V	3.3V/5V	// +3.3V or 5V with on-board regulator
 // 2  GND	    GND		   GND		  GND
 // 3* CS	    10		   10		   4	// Could be any GPIO pin, but then need to make sure SS isn't a LOW input (or slave SPI mode)
-// 4* RESET	  3.3V/5V	 3.3V/5V	3.3V/5V	// This relies on soft-reset. You can also use Arduino reset pin (if correct voltage).
+// 4* RESET	  0/8/RESET	 0/8/RESET	0/RESET	// This relies on soft-reset. You can also use Arduino reset pin (if correct voltage).
 // 5* DC/RS		9  		   9		   3	// Could be any GPIO pin
 // 6* SDI/MOSI	11		  ICSP4		   5	// HW SPI pin (can't change)
 // 7* SCK	    13		  ICSP3		   7	// HW SPI pin (can't change) NOTE: On Uno this causes on-board LED to flicker during SPI use
@@ -32,4 +32,4 @@
 // (other pins used are dictated by AVR HW SPI used as shown above)
 
 // other PDQ library options
-#define	ST7735_SAVE_SPCR	0			// <= 0/1 with 1 to save/restore AVR SPI control register (to "play nice" when other SPI use)
+#define	ILI9340_SAVE_SPCR	0			// <= 0/1 with 1 to save/restore AVR SPI control register (to "play nice" when other SPI use)

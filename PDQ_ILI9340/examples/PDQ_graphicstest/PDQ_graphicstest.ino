@@ -21,9 +21,12 @@
 #include <SPI.h>				// must include this here (or else IDE can't find it)
                                            
 #include <PDQ_GFX.h>				// PDQ: Core graphics library
-#include "PDQ_ILI9340_config.h"			// PDQ: LI9340 pins and other setup for this sketch
+#include "PDQ_ILI9340_config.h"			// PDQ: ILI9340 pins and other setup for this sketch
 #include <PDQ_ILI9340.h>			// PDQ: Hardware-specific driver library
-PDQ_ILI9340 tft;				// PDQ: create LCD object (using pins in "PDQ_LI9340_config.h")
+PDQ_ILI9340 tft;			// PDQ: create LCD object (using pins in "PDQ_ILI9340_config.h")
+
+#include <Fonts/FreeSerif12pt7b.h>	// include fancy serif font
+#include <Fonts/FreeSans12pt7b.h>	// include fancy sans-serif font
 
 // NOTE: Changes to test with Adafruit libraries (comment out PDQ lines above and un-comment the AF: ones below)
 
@@ -402,11 +405,12 @@ uint32_t testHaD()
 
 	uint32_t t = micros() - start;
 
+	tft.setFont(&FreeSans12pt7b);
 	tft.setTextColor(ILI9340_YELLOW);
-	tft.setTextSize(2);
-	tft.setCursor(8, 285);
+	tft.setTextSize(1);
+	tft.setCursor(24, 285);
 	tft.print(F("http://hackaday.io/"));
-	tft.setCursor(96, 302);
+	tft.setCursor(100, 306);
 	tft.print(F("Xark"));
 
 	delay(3 * 1000L);
@@ -417,22 +421,24 @@ uint32_t testHaD()
 uint32_t testFillScreen()
 {
 	uint32_t start = micros_start();
-
+	
 	for (uint8_t i = 0; i < 12; i++)
 	{
+		tft.fillScreen(ILI9340_BLACK);
 		tft.fillScreen(ILI9340_WHITE);
 		tft.fillScreen(ILI9340_RED);
 		tft.fillScreen(ILI9340_GREEN);
 		tft.fillScreen(ILI9340_BLUE);
-		tft.fillScreen(ILI9340_BLACK);
 	}
 
 	return micros() - start;
 }
 
-uint32_t testText() {
+uint32_t testText()
+{
 	tft.fillScreen(ILI9340_BLACK);
 	uint32_t start = micros_start();
+	tft.setFont(NULL);
 	tft.setCursor(0, 0);
 	tft.setTextColor(ILI9340_WHITE);	tft.setTextSize(1);
 	tft.println(F("Hello World!"));
@@ -463,11 +469,20 @@ uint32_t testText() {
 	tft.println(F("see if I don't!"));
 	tft.println(F(""));
 	tft.println(F(""));
-	tft.setTextColor(ILI9340_MAGENTA);
-	tft.setTextSize(6);
-	tft.println(F("Woot!"));
+	tft.setTextColor(ILI9340_WHITE);
+	tft.setTextSize(1);
+	tft.setFont(&FreeSerif12pt7b);
+	tft.print(F("FreeSerif12pt font\n"));
+	tft.setFont(&FreeSans12pt7b);
+	int16_t x1, y1;
+	uint16_t w, h;
+	tft.getTextBounds(F("FreeSans12pt7b\ngfxFont example."), tft.getCursorX(), tft.getCursorY(), &x1, &y1, &w, &h);
+	tft.drawRect(x1, y1, w, h, ILI9340_YELLOW);
+	tft.print(F("FreeSans12pt7b\nglxFont example.\n"));
+	tft.setFont(NULL);
+
 	uint32_t t = micros() - start;
-	delay(1000);
+	delay(5000);
 	return t;
 }
 

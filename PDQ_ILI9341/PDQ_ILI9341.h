@@ -197,7 +197,7 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 	static inline void spi_begin() __attribute__((always_inline))
 	{
 #if ILI9341_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
-		swap(save_SPCR, SPCR);	// swap initial/current SPCR settings
+		swapValue(save_SPCR, SPCR);	// swap initial/current SPCR settings
 #endif
 		FastPin<ILI9341_CS_PIN>::lo();		// CS <= LOW (selected)
 	}
@@ -208,7 +208,7 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 	{
 		FastPin<ILI9341_CS_PIN>::hi();		// CS <= HIGH (deselected)
 #if ILI9341_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
-		swap(SPCR, save_SPCR);	// swap current/initial SPCR settings
+		swapValue(SPCR, save_SPCR);	// swap current/initial SPCR settings
 #endif
 	}
 
@@ -535,6 +535,8 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 #endif
 };
 
+typedef PDQ_GFX_Button_<PDQ_ILI9341>	PDQ_GFX_Button;
+
 /***************************************************
   This is an Arduino Library for the Adafruit 2.2" SPI display.
   This library works with the Adafruit 2.2" TFT Breakout w/SD card
@@ -828,14 +830,14 @@ void PDQ_ILI9341::drawLine(int x0, int y0, int x1, int y1, uint16_t color)
 	int8_t steep = abs(y1 - y0) > abs(x1 - x0);
 	if (steep)
 	{
-		swap(x0, y0);
-		swap(x1, y1);
+		swapValue(x0, y0);
+		swapValue(x1, y1);
 	}
 
 	if (x0 > x1)
 	{
-		swap(x0, x1);
-		swap(y0, y1);
+		swapValue(x0, x1);
+		swapValue(y0, y1);
 	}
 
 	if (x1 < 0)

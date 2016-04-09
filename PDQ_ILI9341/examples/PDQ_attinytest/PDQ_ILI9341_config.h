@@ -37,4 +37,4 @@
 // (with hardware SPI some pins dictated by AVR PIN function - as shown above)
 
 // other PDQ library options
-#define	ST7735_SAVE_SPCR	0			// <= 0/1 with 1 to save/restore AVR SPI control register (to "play nice" when other SPI use)
+#define	ILI9341_SAVE_SPCR	0			// <= 0/1 with 1 to save/restore AVR SPI control register (to "play nice" when other SPI use)
