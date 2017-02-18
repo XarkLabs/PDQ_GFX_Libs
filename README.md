@@ -34,3 +34,11 @@ New features in latest commit ("v1.0.0" 2015-05-30) include:
  
 Suggestions, issues, bugs and comments welcome.  Via https://hackaday.io/Xark or visit #Arduino channel on Freenode.net IRC.
 I have also posted a write-up about the development of this library at http://hackaday.io/Xark (describes most of the optimizations done).
+
+
+Issues
+------
+
+Currently, the library may only be used from the INO file in your project. You _cannot_ include it in a header file and
+use it from other CPP files. The current workaround is to write wrapper functions or classes, declare them in a header
+file, and then implement them in the INO file.

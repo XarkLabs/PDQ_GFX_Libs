@@ -655,14 +655,14 @@ void PDQ_ST7781::drawLine(int x0, int y0, int x1, int y1, uint16_t color)
 	int8_t steep = abs(y1 - y0) > abs(x1 - x0);
 	if (steep)
 	{
-		swap(x0, y0);
-		swap(x1, y1);
+		swapValue(x0, y0);
+		swapValue(x1, y1);
 	}
 
 	if (x0 > x1)
 	{
-		swap(x0, x1);
-		swap(y0, y1);
+		swapValue(x0, x1);
+		swapValue(y0, y1);
 	}
 
 	if (x1 < 0)

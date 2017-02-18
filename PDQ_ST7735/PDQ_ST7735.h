@@ -192,7 +192,7 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 	static inline void spi_begin() __attribute__((always_inline))
 	{
 #if ST7735_SAVE_SPCR
-		swap(save_SPCR, SPCR);	// swap initial/current SPCR settings
+		swapValue(save_SPCR, SPCR);	// swap initial/current SPCR settings
 #endif
 		FastPin<ST7735_CS_PIN>::lo();		// CS <= LOW (selected)
 	}
@@ -203,7 +203,7 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 	{
 		FastPin<ST7735_CS_PIN>::hi();		// CS <= HIGH (deselected)
 #if ST7735_SAVE_SPCR
-		swap(SPCR, save_SPCR);	// swap current/initial SPCR settings
+		swapValue(SPCR, save_SPCR);	// swap current/initial SPCR settings
 #endif
 	}
 
@@ -851,14 +851,14 @@ void PDQ_ST7735::drawLine(int x0, int y0, int x1, int y1, uint16_t color)
 	int8_t steep = abs(y1 - y0) > abs(x1 - x0);
 	if (steep)
 	{
-		swap(x0, y0);
-		swap(x1, y1);
+		swapValue(x0, y0);
+		swapValue(x1, y1);
 	}
 
 	if (x0 > x1)
 	{
-		swap(x0, x1);
-		swap(y0, y1);
+		swapValue(x0, x1);
+		swapValue(y0, y1);
 	}
 
 	if (x1 < 0)

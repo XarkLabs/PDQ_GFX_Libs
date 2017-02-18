@@ -197,7 +197,7 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 	static inline void spi_begin() __attribute__((always_inline))
 	{
 #if ILI9340_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
-		swap(save_SPCR, SPCR);	// swap initial/current SPCR settings
+		swapValue(save_SPCR, SPCR);	// swap initial/current SPCR settings
 #endif
 		FastPin<ILI9340_CS_PIN>::lo();		// CS <= LOW (selected)
 	}
@@ -208,7 +208,7 @@ class PDQ_ILI9340 : public PDQ_GFX<PDQ_ILI9340>
 	{
 		FastPin<ILI9340_CS_PIN>::hi();		// CS <= HIGH (deselected)
 #if ILI9340_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
-		swap(SPCR, save_SPCR);	// swap current/initial SPCR settings
+		swapValue(SPCR, save_SPCR);	// swap current/initial SPCR settings
 #endif
 	}
 
