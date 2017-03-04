@@ -208,7 +208,7 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 	}
 
 	// 10 cycle delay (including "call")
-	static void delay10() __attribute__((noinline)) __attribute__((naked))
+	static void delay10() __attribute__((noinline)) __attribute__((naked)) __attribute__((used))
 	{
 		__asm__ __volatile__
 		(
@@ -225,7 +225,7 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 	}
 
 	// 13 cycle delay (including "call")
-	static void delay13() __attribute__((noinline)) __attribute__((naked))
+	static void delay13() __attribute__((noinline)) __attribute__((naked)) __attribute__((used))
 	{
 		__asm__ __volatile__
 		(
@@ -242,7 +242,7 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 	}
 
 	// 15 cycle delay (including "call")
-	static void delay15() __attribute__((noinline)) __attribute__((naked))
+	static void delay15() __attribute__((noinline)) __attribute__((naked)) __attribute__((used))
 	{
 		__asm__ __volatile__
 		(
@@ -260,7 +260,7 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 	}
 
 	// 17 cycle delay (including "call")
-	static void delay17() __attribute__((noinline)) __attribute__((naked))
+	static void delay17() __attribute__((noinline)) __attribute__((naked)) __attribute__((used))
 	{
 		__asm__ __volatile__
 		(
@@ -459,11 +459,6 @@ volatile uint8_t PDQ_ST7735::save_SPCR;
 // Constructor when using hardware SPI.
 PDQ_ST7735::PDQ_ST7735() : PDQ_GFX<PDQ_ST7735>(ST7735_TFTWIDTH, ST7735_TFTHEIGHT_18)
 {
-	// must reference these functions from C++ or they will be stripped by linker (called from inline asm)
-	delay10();
-	delay13();
-	delay15();
-	delay17();
 }
 
 // Companion code to the above tables.  Reads and issues
