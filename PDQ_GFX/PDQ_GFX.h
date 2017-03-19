@@ -76,6 +76,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "gfxfont.h"
 
+#define GFX_FONT_PACKED
+
 typedef int			coord_t;	// type used for coordinates (signed) for parameters (int16_t used for storage)
 typedef uint16_t	color_t;	// type used for colors (unsigned)
 
@@ -141,6 +143,7 @@ public:
 	static void drawBitmap(coord_t x, coord_t y, uint8_t *bitmap, coord_t w, coord_t h, color_t color, color_t bg);
 	static void drawXBitmap(coord_t x, coord_t y, const uint8_t *bitmap, coord_t w, coord_t h, color_t color);
 	static void drawChar(coord_t x, coord_t y, unsigned char c, color_t color, color_t bg, uint8_t size);
+	static void drawCharGFX(coord_t x, coord_t y, unsigned char c, color_t color, color_t bg, uint8_t size);
 	static inline void setCursor(coord_t x, coord_t y);
 	static inline void setTextColor(color_t c);
 	static inline void setTextColor(color_t c, color_t bg);
@@ -724,7 +727,7 @@ size_t PDQ_GFX<HW>::write(uint8_t c)
 		}
 		else if (c != '\r')
 		{
-			drawChar(cursor_x, cursor_y, c, textcolor, textbgcolor, textsize);
+			HW::drawChar(cursor_x, cursor_y, c, textcolor, textbgcolor, textsize);
 			cursor_x += textsize*6;
 			if (wrap && (cursor_x > (_width - textsize*6)))
 			{
@@ -760,7 +763,7 @@ size_t PDQ_GFX<HW>::write(uint8_t c)
 						cursor_y += (coord_t)textsize *
 						(uint8_t)pgm_read_byte(&gfxFont->yAdvance);
 					}
-					drawChar(cursor_x, cursor_y, c, textcolor, textbgcolor, textsize);
+					HW::drawCharGFX(cursor_x, cursor_y, c, textcolor, textbgcolor, textsize);
 				}
 				cursor_x += pgm_read_byte(&glyph->xAdvance) * (coord_t)textsize;
 			}
@@ -769,127 +772,195 @@ size_t PDQ_GFX<HW>::write(uint8_t c)
 	return 1;
 }
 
-// Draw a character
+// Draw a character with built-in font
 template<class HW>
 void PDQ_GFX<HW>::drawChar(coord_t x, coord_t y, unsigned char c, color_t color, color_t bg, uint8_t size)
 {
-	// 'Classic' built-in font
-	if (!gfxFont)
-	{
-		if ((x >= _width)  ||
-			(y >= _height) ||
-			((x + (6 * size) - 1) < 0) ||
-			((y + (8 * size) - 1) < 0))
-			return;
+  if ((x >= _width)  ||
+    (y >= _height) ||
+    ((x + (6 * size) - 1) < 0) ||
+    ((y + (8 * size) - 1) < 0))
+    return;
 
-		uint8_t is_opaque = (bg != color);
+  uint8_t is_opaque = (bg != color);
 
-		if(!_cp437 && (c >= 176))	// Handle 'classic' charset behavior
-			c++;
+  if(!_cp437 && (c >= 176))	// Handle 'classic' charset behavior
+    c++;
 
-		for (int8_t i=0; i<6; i++)
-		{
-			uint8_t line;
+  for (int8_t i=0; i<6; i++)
+  {
+    uint8_t line;
 
-			if (i == 5)
-				line = 0x0;
-			else
-				line = pgm_read_byte(glcdfont+(c*5)+i);
+    if (i == 5)
+      line = 0x0;
+    else
+      line = pgm_read_byte(glcdfont+(c*5)+i);
 
-			if (size == 1)
-			{
-				for (int8_t j = 0; j < 8; j++)
-				{
-					if (line & 0x1)
-					{
-						HW::drawPixel(x+i, y+j, color);
-					}
-					else if (is_opaque)
-					{
-						HW::drawPixel(x+i, y+j, bg);
-					}
-					line >>= 1;
-				}
-			}
-			else
-			{
-				for (int8_t j = 0; j < 8; j++)
-				{
-					if (line & 0x1)
-					{
-						HW::fillRect(x+(i*size), y+(j*size), size, size, color);
-					}
-					else if (is_opaque)
-					{
-						HW::fillRect(x+(i*size), y+(j*size), size, size, bg);
-					}
-					line >>= 1;
-				}
-			}
-		}
-	}
-	else
-	{
-		// Character is assumed previously filtered by write() to eliminate
-		// newlines, returns, non-printable characters, etc.	Calling drawChar()
-		// directly with 'bad' characters of font may cause mayhem!
+    if (size == 1)
+    {
+      for (int8_t j = 0; j < 8; j++)
+      {
+        if (line & 0x1)
+        {
+          HW::drawPixel(x+i, y+j, color);
+        }
+        else if (is_opaque)
+        {
+          HW::drawPixel(x+i, y+j, bg);
+        }
+        line >>= 1;
+      }
+    }
+    else
+    {
+      for (int8_t j = 0; j < 8; j++)
+      {
+        if (line & 0x1)
+        {
+          HW::fillRect(x+(i*size), y+(j*size), size, size, color);
+        }
+        else if (is_opaque)
+        {
+          HW::fillRect(x+(i*size), y+(j*size), size, size, bg);
+        }
+        line >>= 1;
+      }
+    }
+  }
+}
 
-		c -= pgm_read_byte(&gfxFont->first);
-		GFXglyph *glyph	= &(((GFXglyph *)pgm_read_pointer(&gfxFont->glyph))[c]);
-		uint8_t	*bitmap = (uint8_t *)pgm_read_pointer(&gfxFont->bitmap);
+// Draw a character with GFX font
+template<class HW>
+void PDQ_GFX<HW>::drawCharGFX(coord_t x, coord_t y, unsigned char c, color_t color, color_t bg, uint8_t size)
+{
+  // Character is assumed previously filtered by write() to eliminate
+  // newlines, returns, non-printable characters, etc.	Calling drawChar()
+  // directly with 'bad' characters of font may cause mayhem!
 
-		uint16_t bo = pgm_read_word(&glyph->bitmapOffset);
-		uint8_t	w	= pgm_read_byte(&glyph->width);
-		uint8_t	h	= pgm_read_byte(&glyph->height);
-//		uint8_t	xa	= pgm_read_byte(&glyph->xAdvance);
-		int8_t	xo	= pgm_read_byte(&glyph->xOffset);
-		int8_t	yo	= pgm_read_byte(&glyph->yOffset);
+  c -= pgm_read_byte(&gfxFont->first);
+  GFXglyph *glyph	= &(((GFXglyph *)pgm_read_pointer(&gfxFont->glyph))[c]);
+  uint8_t	*bitmap = (uint8_t *)pgm_read_pointer(&gfxFont->bitmap);
 
-		// Todo: Add character clipping here
+  uint16_t bo = pgm_read_word(&glyph->bitmapOffset);
+  uint8_t	w	= pgm_read_byte(&glyph->width);
+  uint8_t	h	= pgm_read_byte(&glyph->height);
+  // uint8_t	xa	= pgm_read_byte(&glyph->xAdvance);
+  int8_t	xo	= pgm_read_byte(&glyph->xOffset);
+  int8_t	yo	= pgm_read_byte(&glyph->yOffset);
 
-		// NOTE: THERE IS NO 'BACKGROUND' COLOR OPTION ON CUSTOM FONTS.
-		// THIS IS ON PURPOSE AND BY DESIGN.  The background color feature
-		// has typically been used with the 'classic' font to overwrite old
-		// screen contents with new data.  This ONLY works because the
-		// characters are a uniform size; it's not a sensible thing to do with
-		// proportionally-spaced fonts with glyphs of varying sizes (and that
-		// may overlap).  To replace previously-drawn text when using a custom
-		// font, use the getTextBounds() function to determine the smallest
-		// rectangle encompassing a string, erase the area with fillRect(),
-		// then draw new text.  This WILL infortunately 'blink' the text, but
-		// is unavoidable.  Drawing 'background' pixels will NOT fix this,
-		// only creates a new set of problems.  Have an idea to work around
-		// this (a canvas object type for MCUs that can afford the RAM and
-		// displays supporting setAddrWindow() and pushColors()), but haven't
-		// implemented this yet.
+  // Todo: Add character clipping here
 
-		uint8_t	bit = 0;
-		uint8_t	bits = 0;
-		for (coord_t yy=0; yy<h; yy++)
-		{
-			for (coord_t xx=0; xx<w; xx++)
-			{
-				if (bit == 0)
-				{
-					bits = pgm_read_byte(&bitmap[bo++]);
-				}
-				bit = (bit+1) & 0x7;
+  // NOTE: THERE IS NO 'BACKGROUND' COLOR OPTION ON CUSTOM FONTS.
+  // THIS IS ON PURPOSE AND BY DESIGN.  The background color feature
+  // has typically been used with the 'classic' font to overwrite old
+  // screen contents with new data.  This ONLY works because the
+  // characters are a uniform size; it's not a sensible thing to do with
+  // proportionally-spaced fonts with glyphs of varying sizes (and that
+  // may overlap).  To replace previously-drawn text when using a custom
+  // font, use the getTextBounds() function to determine the smallest
+  // rectangle encompassing a string, erase the area with fillRect(),
+  // then draw new text.  This WILL infortunately 'blink' the text, but
+  // is unavoidable.  Drawing 'background' pixels will NOT fix this,
+  // only creates a new set of problems.  Have an idea to work around
+  // this (a canvas object type for MCUs that can afford the RAM and
+  // displays supporting setAddrWindow() and pushColors()), but haven't
+  // implemented this yet.
 
-				if (bits & 0x80)
-				{
-					if (size == 1)
-					{
-						HW::drawPixel(x+xo+xx, y+yo+yy, color);
-					}
-					else
-					{
-						HW::fillRect(x+xo+xx*size, y+yo+yy*size, size, size, color);
-					}
-				}
-				bits <<= 1;
-			}
-		}
-	}
+  if (bo & 0x8000) {
+    // packed font
+    uint8_t	bits_cnt = 0;
+    uint8_t	bits;
+    uint8_t	cnt,cnt2;
+    bo &= 0x7FFF;
+    coord_t _y = y+yo;
+    for (coord_t yy=0; yy<h; yy++, _y++)
+    {
+      coord_t _x = x+xo;
+      for (coord_t xx=0; xx<w; xx+=cnt2)
+      {
+
+        if (bits_cnt == 0)
+        {
+          bits = pgm_read_byte(&bitmap[bo++]);
+          bits_cnt = 2;
+          cnt = (bits & 0x7)+1;
+        }
+
+        if (xx+cnt >= w)
+        {
+            cnt2 = w-xx;
+        } else {
+            cnt2 = cnt;
+        }
+
+        if (bits & 0x8)
+        {
+          if (size == 1)
+          {
+            HW::drawFastHLine(_x, _y, cnt2, color);
+            _x += cnt2;
+          }
+          else
+          {
+            HW::fillRect(x+xo+xx*size, y+yo+yy*size, cnt2*size, size, color);
+            // _x not used if size > 1, so not need to increment it
+          }
+        } else {
+          _x += cnt2;
+        }
+
+        cnt -= cnt2;
+        if (cnt == 0) {
+          bits >>= 4;
+          cnt = (bits & 0x7)+1;
+          bits_cnt--;
+        }
+      }
+    }
+  } else {
+    uint8_t	bit = 0;
+    uint8_t	bits = 0;
+    if (size == 1)
+    {
+      coord_t _y = y+yo;
+      for (coord_t yy=0; yy<h; yy++, _y++)
+      {
+        coord_t _x = x+xo;
+        for (coord_t xx=0; xx<w; xx++, _x++)
+        {
+          if (bit == 0)
+          {
+            bits = pgm_read_byte(&bitmap[bo++]);
+          }
+          bit = (bit+1) & 0x7;
+
+          if (bits & 0x80)
+          {
+            HW::drawPixel(_x, _y, color);
+          }
+          bits <<= 1;
+        }
+      }
+    } else {
+      for (coord_t yy=0; yy<h; yy++)
+      {
+        for (coord_t xx=0; xx<w; xx++)
+        {
+          if (bit == 0)
+          {
+            bits = pgm_read_byte(&bitmap[bo++]);
+          }
+          bit = (bit+1) & 0x7;
+
+          if (bits & 0x80)
+          {
+            HW::fillRect(x+xo+xx*size, y+yo+yy*size, size, size, color);
+          }
+          bits <<= 1;
+        }
+      }
+    }
+  }
 }
 
 template<class HW>
