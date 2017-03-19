@@ -1,3 +1,10 @@
+PDQ_GFX_Libs with packed font support
+============
+Version with special "packed" font support. Also include TTF2GFX for create custom GFX fonts from TTF.
+Speed up improvement for GFX text drawing about 2-3 times. 
+Allow to create custom fonts with subset of chars (not all ASCII table).
+Special "packing" algorithm for GFX font allow to save 20-50% of space
+
 PDQ_GFX_Libs
 ============
 
