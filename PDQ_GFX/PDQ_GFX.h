@@ -883,7 +883,7 @@ void PDQ_GFX<HW>::drawChar(coord_t x, coord_t y, unsigned char c, color_t color,
 					}
 					else
 					{
-						HW::fillRect((x+xo+xx)*size, (y+yo+yy)*size, size, size, color);
+						HW::fillRect(x+xo+xx*size, y+yo+yy*size, size, size, color);
 					}
 				}
 				bits <<= 1;
