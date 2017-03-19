@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.987,C:\Users\Relayer\Documents\Embarcadero\Studio\Projects\Project1.dproj=D:\Hobby\My.Radio\!Projects\!Arduino\TTF2GFX\Project1.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.623,C:\Users\Relayer\Documents\Embarcadero\Studio\Projects\Unit1.dfm=D:\Hobby\My.Radio\!Projects\!Arduino\TTF2GFX\Unit1.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.623,C:\Users\Relayer\Documents\Embarcadero\Studio\Projects\Unit1.pas=D:\Hobby\My.Radio\!Projects\!Arduino\TTF2GFX\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.933,=C:\Users\Relayer\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.231,=C:\Users\Relayer\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+  </Transactions>
+</BorlandProject>
