@@ -21,9 +21,9 @@
 #include <SPI.h>				// must include this here (or else IDE can't find it)
                                            
 #include <PDQ_GFX.h>				// PDQ: Core graphics library
-#include "PDQ_ST7735_config.h"			// PDQ: ST7735 pins and other setup for this sketch
-#include <PDQ_ST7735.h>			// PDQ: Hardware-specific driver library
-PDQ_ST7735 tft;			// PDQ: create LCD object (using pins in "PDQ_ST7735_config.h")
+#include "PDQ_ST7781_config.h"			// PDQ: ST7781 pins and other setup for this sketch
+#include <PDQ_ST7781.h>			// PDQ: Hardware-specific driver library
+PDQ_ST7781 tft;			// PDQ: create LCD object (using pins in "PDQ_ST7781_config.h")
 
 #include <Fonts/FreeSerif12pt7b.h>	// include fancy serif font
 #include <Fonts/FreeSans12pt7b.h>	// include fancy sans-serif font
@@ -31,8 +31,8 @@ PDQ_ST7735 tft;			// PDQ: create LCD object (using pins in "PDQ_ST7735_config.h"
 // NOTE: Changes to test with Adafruit libraries (comment out PDQ lines above and un-comment the AF: ones below)
 
 // AF: #include <Adafruit_GFX.h>		// AF: Core graphics library
-// AF: #include <Adafruit_ST7735.h>		// AF: Hardware-specific library
-// AF: Adafruit_ST7735 tft(10,  9, 8); 	// AF: create LCD object (HW SPI, CS=pin 10, D/C=pin 8, reset=9)
+// AF: #include <Adafruit_ST7781.h>		// AF: Hardware-specific library
+// AF: Adafruit_ST7781 tft(10,  9, 8); 	// AF: create LCD object (HW SPI, CS=pin 10, D/C=pin 8, reset=9)
 
 // These are used to get information about static SRAM and flash memory sizes
 extern "C" char __data_start[];		// start of SRAM data
@@ -44,18 +44,18 @@ void setup()
 	Serial.begin(115200);
 	while (!Serial);
 	
-#if defined(_PDQ_ST7735H_)
-	Serial.println(F("PDQ ST7735 2.2\" SPI TFT Test!     ")); 
+#if defined(_PDQ_ST7781H_)
+	Serial.println(F("PDQ ST7781 2.2\" SPI TFT Test!     ")); 
 #else
- 	Serial.println(F("Adafruit ST7735 2.2\" SPI TFT Test!")); 
+ 	Serial.println(F("Adafruit ST7781 2.2\" SPI TFT Test!")); 
 #endif
  
-#if defined(ST7735_RST_PIN)	// reset like Adafruit does
-	FastPin<ST7735_RST_PIN>::setOutput();
-	FastPin<ST7735_RST_PIN>::hi();
-	FastPin<ST7735_RST_PIN>::lo();
+#if defined(ST7781_RST_PIN)	// reset like Adafruit does
+	FastPin<ST7781_RST_PIN>::setOutput();
+	FastPin<ST7781_RST_PIN>::hi();
+	FastPin<ST7781_RST_PIN>::lo();
 	delay(1);
-	FastPin<ST7735_RST_PIN>::hi();
+	FastPin<ST7781_RST_PIN>::hi();
 #endif
 
 	tft.begin();			// initialize LCD
@@ -89,32 +89,32 @@ void loop(void)
 	Serial.println(usecPixels);
 	delay(100);
 
-	uint32_t usecLines = testLines(ST7735_BLUE);
+	uint32_t usecLines = testLines(ST7781_BLUE);
 	Serial.print(F("Lines                    "));
 	Serial.println(usecLines);
 	delay(100);
 
-	uint32_t usecFastLines = testFastLines(ST7735_RED, ST7735_BLUE);
+	uint32_t usecFastLines = testFastLines(ST7781_RED, ST7781_BLUE);
 	Serial.print(F("Horiz/Vert Lines         "));
 	Serial.println(usecFastLines);
 	delay(100);
 
-	uint32_t usecRects = testRects(ST7735_GREEN);
+	uint32_t usecRects = testRects(ST7781_GREEN);
 	Serial.print(F("Rectangles (outline)     "));
 	Serial.println(usecRects);
 	delay(100);
 
-	uint32_t usecFilledRects = testFilledRects(ST7735_YELLOW, ST7735_MAGENTA);
+	uint32_t usecFilledRects = testFilledRects(ST7781_YELLOW, ST7781_MAGENTA);
 	Serial.print(F("Rectangles (filled)      "));
 	Serial.println(usecFilledRects);
 	delay(100);
 
-	uint32_t usecFilledCircles = testFilledCircles(10, ST7735_MAGENTA);
+	uint32_t usecFilledCircles = testFilledCircles(10, ST7781_MAGENTA);
 	Serial.print(F("Circles (filled)         "));
 	Serial.println(usecFilledCircles);
 	delay(100);
 
-	uint32_t usecCircles = testCircles(10, ST7735_WHITE);
+	uint32_t usecCircles = testCircles(10, ST7781_WHITE);
 	Serial.print(F("Circles (outline)        "));
 	Serial.println(usecCircles);
 	delay(100);
@@ -152,16 +152,16 @@ void loop(void)
 	}
 	
 	tft.setCursor(0, 0);
-	tft.setTextColor(ST7735_MAGENTA);
+	tft.setTextColor(ST7781_MAGENTA);
 	tft.setTextSize(2);
 
-#if defined(_PDQ_ST7735H_)
-	tft.print(F("PDQ GFX+PDQ ST7735 "));
+#if defined(_PDQ_ST7781H_)
+	tft.print(F("PDQ GFX+PDQ ST7781 "));
 #else
- 	tft.print(F("Adafruit GFX+ST7735"));
+ 	tft.print(F("Adafruit GFX+ST7781"));
 #endif
 	tft.setTextSize(1);
-	tft.setTextColor(ST7735_WHITE);
+	tft.setTextColor(ST7781_WHITE);
 	tft.println(F(" SPI LCD Benchmark (Atmega328p @ 16MHz)"));
 	tft.setTextSize(1);
 	tft.println(F(""));
@@ -173,84 +173,84 @@ void loop(void)
 	tft.println(F(""));
 	tft.println(F(""));
 
-	tft.setTextColor(ST7735_GREEN);
+	tft.setTextColor(ST7781_GREEN);
 	tft.println(F(" Benchmark               microseconds"));
 	tft.println(F(""));
-	tft.setTextColor(ST7735_YELLOW);
+	tft.setTextColor(ST7781_YELLOW);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("HaD pushColor      "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecHaD);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Screen fill        "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecFillScreen);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Text               "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecText);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Pixels             "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecPixels);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Lines              "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecLines);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Horiz/Vert Lines   "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecFastLines);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Rectangles         "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecRects);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Rectangles-filled  "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecFilledRects);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Circles            "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecCircles);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Circles-filled     "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecFilledCircles);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Triangles          "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecTriangles);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Triangles-filled   "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecFilledTrangles);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Rounded rects      "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usecRoundRects);
 
-	tft.setTextColor(ST7735_CYAN); tft.setTextSize(1);
+	tft.setTextColor(ST7781_CYAN); tft.setTextSize(1);
 	tft.print(F("Rounded rects-fill "));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	printnice(usedFilledRoundRects);
 
 	tft.setTextSize(1);
 	tft.println(F(""));
-	tft.setTextColor(ST7735_GREEN); tft.setTextSize(2);
+	tft.setTextColor(ST7781_GREEN); tft.setTextSize(2);
 	tft.print(F("Benchmark Completed!"));
 
 	delay(60 * 1000L);
@@ -373,7 +373,7 @@ uint32_t testHaD()
 		0x45, 0x04, 0x80, 0x9d, 0x04, 0xb9, 0x56, 
 	};
 	
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 
 	uint32_t start = micros_start();
 	
@@ -393,7 +393,7 @@ uint32_t testHaD()
 			if (cnt & 0x80)
 				cnt = ((cnt & 0x7f) << 8) | pgm_read_byte(cmp++);
 
-#if defined(_PDQ_ST7735H_)
+#if defined(_PDQ_ST7781H_)
 			tft.pushColor(curcolor, cnt);	// PDQ_GFX has count
 #else
 			while (cnt--)
@@ -406,7 +406,7 @@ uint32_t testHaD()
 	uint32_t t = micros() - start;
 
 	tft.setFont(&FreeSans12pt7b);
-	tft.setTextColor(ST7735_YELLOW);
+	tft.setTextColor(ST7781_YELLOW);
 	tft.setTextSize(1);
 	tft.setCursor(24, 285);
 	tft.print(F("http://hackaday.io/"));
@@ -424,11 +424,11 @@ uint32_t testFillScreen()
 	
 	for (uint8_t i = 0; i < 12; i++)
 	{
-		tft.fillScreen(ST7735_BLACK);
-		tft.fillScreen(ST7735_WHITE);
-		tft.fillScreen(ST7735_RED);
-		tft.fillScreen(ST7735_GREEN);
-		tft.fillScreen(ST7735_BLUE);
+		tft.fillScreen(ST7781_BLACK);
+		tft.fillScreen(ST7781_WHITE);
+		tft.fillScreen(ST7781_RED);
+		tft.fillScreen(ST7781_GREEN);
+		tft.fillScreen(ST7781_BLUE);
 	}
 
 	return micros() - start;
@@ -436,11 +436,11 @@ uint32_t testFillScreen()
 
 uint32_t testText()
 {
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 	uint32_t start = micros_start();
 	tft.setFont(NULL);
 	tft.setCursor(0, 0);
-	tft.setTextColor(ST7735_WHITE);	tft.setTextSize(1);
+	tft.setTextColor(ST7781_WHITE);	tft.setTextSize(1);
 	tft.println(F("Hello World!"));
 	tft.setTextSize(2);
 	tft.setTextColor(tft.color565(0xff, 0x00, 0x00));
@@ -449,12 +449,12 @@ uint32_t testText()
 	tft.print(F("GREEN "));
 	tft.setTextColor(tft.color565(0x00, 0x00, 0xff));
 	tft.println(F("BLUE"));
-	tft.setTextColor(ST7735_YELLOW); tft.setTextSize(2);
+	tft.setTextColor(ST7781_YELLOW); tft.setTextSize(2);
 	tft.println(1234.56);
-	tft.setTextColor(ST7735_RED);		tft.setTextSize(3);
+	tft.setTextColor(ST7781_RED);		tft.setTextSize(3);
 	tft.println(0xDEADBEEF, HEX);
 	tft.println();
-	tft.setTextColor(ST7735_GREEN);
+	tft.setTextColor(ST7781_GREEN);
 	tft.setTextSize(5);
 	tft.println(F("Groop"));
 	tft.setTextSize(2);
@@ -469,7 +469,7 @@ uint32_t testText()
 	tft.println(F("see if I don't!"));
 	tft.println(F(""));
 	tft.println(F(""));
-	tft.setTextColor(ST7735_WHITE);
+	tft.setTextColor(ST7781_WHITE);
 	tft.setTextSize(1);
 	tft.setFont(&FreeSerif12pt7b);
 	tft.print(F("FreeSerif12pt font\n"));
@@ -477,7 +477,7 @@ uint32_t testText()
 	int16_t x1, y1;
 	uint16_t w, h;
 	tft.getTextBounds(F("FreeSans12pt7b\ngfxFont example."), tft.getCursorX(), tft.getCursorY(), &x1, &y1, &w, &h);
-	tft.drawRect(x1, y1, w, h, ST7735_BLUE);
+	tft.drawRect(x1, y1, w, h, ST7781_BLUE);
 	tft.print(F("FreeSans12pt7b\nglxFont example.\n"));
 	tft.setFont(NULL);
 
@@ -512,7 +512,7 @@ uint32_t testLines(uint16_t color)
 	int32_t	w = tft.width();
 	int32_t	h = tft.height();
 
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 
 	x1 = y1 = 0;
 	y2 = h - 1;
@@ -533,7 +533,7 @@ uint32_t testLines(uint16_t color)
 
 	t = micros() - start; // fillScreen doesn't count against timing
 
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 
 	x1 = w - 1;
 	y1 = 0;
@@ -554,7 +554,7 @@ uint32_t testLines(uint16_t color)
 
 	t += micros() - start;
 
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 
 	x1 = 0;
 	y1 = h - 1;
@@ -573,7 +573,7 @@ uint32_t testLines(uint16_t color)
 	}
 	t += micros() - start;
 
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 
 	x1 = w - 1;
 	y1 = h - 1;
@@ -604,7 +604,7 @@ uint32_t testFastLines(uint16_t color1, uint16_t color2)
 	int32_t w = tft.width();
 	int32_t h = tft.height();
 
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 
 	start = micros_start();
 
@@ -623,7 +623,7 @@ uint32_t testRects(uint16_t color)
 	int32_t cx = tft.width() / 2;
 	int32_t cy = tft.height() / 2;
 
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 	n = min(tft.width(), tft.height());
 	start = micros_start();
 	for (i = 2; i < n; i += 6)
@@ -642,7 +642,7 @@ uint32_t testFilledRects(uint16_t color1, uint16_t color2)
 	int32_t cx = tft.width() / 2 - 1;
 	int32_t cy = tft.height() / 2 - 1;
 
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 	n = min(tft.width(), tft.height());
 	for (i = n; i > 0; i -= 6)
 	{
@@ -666,7 +666,7 @@ uint32_t testFilledCircles(uint8_t radius, uint16_t color)
 	uint32_t start;
 	int32_t x, y, w = tft.width(), h = tft.height(), r2 = radius * 2;
 
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 
 	start = micros_start();
 
@@ -710,7 +710,7 @@ uint32_t testTriangles()
 	int32_t cx = tft.width()/ 2 - 1;
 	int32_t cy = tft.height() / 2 - 1;
 
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 	n = min(cx, cy);
 
 	start = micros_start();
@@ -734,7 +734,7 @@ uint32_t testFilledTriangles()
 	int32_t cx = tft.width() / 2 - 1;
 	int32_t cy = tft.height() / 2 - 1;
 
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 
 	start = micros_start();
 
@@ -757,7 +757,7 @@ uint32_t testRoundRects()
 	int32_t cx = tft.width() / 2 - 1;
 	int32_t cy = tft.height() / 2 - 1;
 
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 	
 	w = min(tft.width(), tft.height());
 	
@@ -779,7 +779,7 @@ uint32_t testFilledRoundRects()
 	int32_t cx = tft.width() / 2 - 1;
 	int32_t cy = tft.height() / 2 - 1;
 
-	tft.fillScreen(ST7735_BLACK);
+	tft.fillScreen(ST7781_BLACK);
 
 	start = micros_start();
 
