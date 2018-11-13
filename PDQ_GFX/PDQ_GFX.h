@@ -607,7 +607,7 @@ void PDQ_GFX<HW>::drawBitmap(coord_t x, coord_t y, const uint8_t *bitmap, coord_
 	{
 		for (i = 0; i < w; i++)
 		{
-			if (i == 0)
+			if (i % 8 == 0)
 				byte = pgm_read_byte(bitmap + j * byteWidth + i / 8);
 			else
 				byte <<= 1;
@@ -631,7 +631,7 @@ void PDQ_GFX<HW>::drawBitmap(coord_t x, coord_t y, const uint8_t *bitmap, coord_
 	{
 		for (i = 0; i < w; i++)
 		{
-			if (i == 0)
+			if (i % 8 == 0)
 				byte = pgm_read_byte(bitmap + j * byteWidth + i / 8);
 			else
 				byte <<= 1;
@@ -655,7 +655,7 @@ void PDQ_GFX<HW>::drawBitmap(coord_t x, coord_t y, uint8_t *bitmap, coord_t w, c
 	{
 		for (i = 0; i < w; i++)
 		{
-			if (i == 0)
+			if (i % 8 == 0)
 				byte = bitmap[j * byteWidth + i / 8];
 			else
 				byte <<= 1;
@@ -677,7 +677,7 @@ void PDQ_GFX<HW>::drawBitmap(coord_t x, coord_t y, uint8_t *bitmap, coord_t w, c
 	{
 		for (i = 0; i < w; i++)
 		{
-			if (i == 0)
+			if (i % 8 == 0)
 				byte = bitmap[j * byteWidth + i / 8];
 			else
 				byte <<= 1;
@@ -703,7 +703,7 @@ void PDQ_GFX<HW>::drawXBitmap(coord_t x, coord_t y, const uint8_t *bitmap, coord
 	{
 		for (i = 0; i < w; i++)
 		{
-			if (i == 0)
+			if (i % 8 == 0)
 				byte = pgm_read_byte(bitmap + j * byteWidth + i / 8);
 			else
 				byte >>= 1;
