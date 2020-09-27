@@ -58,6 +58,11 @@ as well as Adafruit raw 1.8" TFT display
 #if !defined(ST7735_CHIPSET) || !defined(ST7735_CS_PIN) || !defined(ST7735_DC_PIN)
 #error Oops!  You need to #include "PDQ_ST7735_config.h" (modified with your pin configuration and options) from your sketch before #include "PDQ_ST7735.h".
 #endif
+#if defined(ST7735_SAVE_SPCR)
+#warning ST7735_SAVE_SPCR is deprecated, use ST7735_SAVE_SPI_SETTINGS
+#define ST7735_SAVE_SPI_SETTINGS ST7735_SAVE_SPCR
+#endif
+
 
 #include <PDQ_FastPin.h>
 
@@ -191,8 +196,9 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 	// set CS back to low (LCD selected)
 	static inline void spi_begin() __attribute__((always_inline))
 	{
-#if ST7735_SAVE_SPCR
-		swapValue(save_SPCR, SPCR);	// swap initial/current SPCR settings
+#if ST7735_SAVE_SPI_SETTINGS
+		SPCR = save_SPCR;
+		SPSR = save_SPSR & 0x01; // SPI2X mask
 #endif
 		FastPin<ST7735_CS_PIN>::lo();		// CS <= LOW (selected)
 	}
@@ -202,9 +208,6 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 	static inline void spi_end() __attribute__((always_inline))
 	{
 		FastPin<ST7735_CS_PIN>::hi();		// CS <= HIGH (deselected)
-#if ST7735_SAVE_SPCR
-		swapValue(SPCR, save_SPCR);	// swap current/initial SPCR settings
-#endif
 	}
 
 	// 10 cycle delay (including "call")
@@ -423,8 +426,10 @@ class PDQ_ST7735 : public PDQ_GFX<PDQ_ST7735>
 		writeCommand(ST7735_RAMWR); 		// write to RAM
 	}
 
-#if ST7735_SAVE_SPCR
-	static volatile uint8_t	save_SPCR;	// initial SPCR value/saved SPCR value (swapped in spi_begin/spi_end)
+#if ST7735_SAVE_SPI_SETTINGS
+	// our SPI settings, set these registers in spi_begin
+	static volatile uint8_t	save_SPCR;
+	static volatile uint8_t save_SPSR;
 #endif
 };
 
@@ -451,9 +456,10 @@ as well as Adafruit raw 1.8" TFT display
   MIT license, all text above must be included in any redistribution
  ****************************************************/
 
-#if ST7735_SAVE_SPCR
+#if ST7735_SAVE_SPI_SETTINGS
 // static data needed by base class
 volatile uint8_t PDQ_ST7735::save_SPCR;
+volatile uint8_t PDQ_ST7735::save_SPSR;
 #endif
 
 // Constructor when using hardware SPI.
@@ -499,17 +505,15 @@ void PDQ_ST7735::begin()
 	FastPin<ST7735_CS_PIN>::hi();		// CS <= HIGH (so no spurious data)
 	FastPin<ST7735_DC_PIN>::hi();		// RS <= HIGH (default data byte)
 
-#if ST7735_SAVE_SPCR
-	uint8_t oldSPCR = SPCR;	// save current SPCR settings
-#endif	
 	SPI.begin();
 	SPI.setBitOrder(MSBFIRST);
 	SPI.setDataMode(SPI_MODE0);
 	SPI.setClockDivider(SPI_CLOCK_DIV2);	// 8 MHz (full! speed!) [1 byte every 18 cycles]
-	
-#if ST7735_SAVE_SPCR
-	save_SPCR = SPCR;	// save new initial SPCR settings
-	SPCR = oldSPCR;		// restore previous SPCR settings (spi_begin/spi_end will switch between the two)
+
+#if ST7735_SAVE_SPI_SETTINGS
+	// save our SPI settings
+	save_SPCR = SPCR;
+	save_SPSR = SPSR;
 #endif
 	spi_begin();
 
