@@ -47,4 +47,4 @@ enum
 // (other pins used are dictated by AVR HW SPI used as shown above)
 
 // other PDQ library options
-#define	ST7735_SAVE_SPCR	0			// <= 0/1 with 1 to save/restore AVR SPI control register (to "play nice" when other SPI use)
+#define	ST7735_SAVE_SPI_SETTINGS	0			// <= 0/1 with 1 to save AVR SPI control and status registers (required when other SPI devices are in use with other settings)
