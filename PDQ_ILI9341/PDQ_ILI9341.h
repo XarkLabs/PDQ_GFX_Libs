@@ -50,6 +50,10 @@
 #if !defined(ILI9341_CS_PIN) || !defined(ILI9341_DC_PIN)
 #error Oops!  You need to #include "PDQ_ILI9341_config.h" (modified with your pin configuration and options) from your sketch before #include "PDQ_ILI9341.h".
 #endif
+#if defined(ILI9341_SAVE_SPCR)
+#warning ILI9341_SAVE_SPCR is deprecated, use ILI9341_SAVE_SPI_SETTINGS
+#define ILI9341_SAVE_SPI_SETTINGS ILI9341_SAVE_SPCR
+#endif
 
 #include <PDQ_FastPin.h>
 
@@ -196,8 +200,9 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 	// set CS back to low (LCD selected)
 	static inline void spi_begin() __attribute__((always_inline))
 	{
-#if ILI9341_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
-		swapValue(save_SPCR, SPCR);	// swap initial/current SPCR settings
+#if ILI9341_SAVE_SPI_SETTINGS && defined(AVR_HARDWARE_SPI)
+		SPCR = save_SPCR;
+		SPSR = save_SPSR;
 #endif
 		FastPin<ILI9341_CS_PIN>::lo();		// CS <= LOW (selected)
 	}
@@ -207,9 +212,6 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 	static inline void spi_end() __attribute__((always_inline))
 	{
 		FastPin<ILI9341_CS_PIN>::hi();		// CS <= HIGH (deselected)
-#if ILI9341_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
-		swapValue(SPCR, save_SPCR);	// swap current/initial SPCR settings
-#endif
 	}
 
 #if defined(AVR_HARDWARE_SPI)
@@ -530,8 +532,10 @@ class PDQ_ILI9341 : public PDQ_GFX<PDQ_ILI9341>
 		writeCommand(ILI9341_RAMWR); 		// write to RAM
 	}
 
-#if ILI9341_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
-	static volatile uint8_t	save_SPCR;	// initial SPCR value/saved SPCR value (swapped in spi_begin/spi_end)
+#if ILI9341_SAVE_SPI_SETTINGS && defined(AVR_HARDWARE_SPI)
+	// our SPI settings, set these registers in spi_begin
+	static volatile uint8_t	save_SPCR;
+	static volatile uint8_t save_SPSR;
 #endif
 };
 
@@ -553,9 +557,10 @@ typedef PDQ_GFX_Button_<PDQ_ILI9341>	PDQ_GFX_Button;
   MIT license, all text above must be included in any redistribution
  ****************************************************/
 
-#if ILI9341_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
+#if ILI9341_SAVE_SPI_SETTINGS && defined(AVR_HARDWARE_SPI)
 // static data needed by base class
 volatile uint8_t PDQ_ILI9341::save_SPCR;
+volatile uint8_t PDQ_ILI9341::save_SPSR;
 #endif
 
 // Constructor when using hardware SPI.
@@ -622,19 +627,17 @@ void PDQ_ILI9341::begin(void)
 	FastPin<ILI9341_DC_PIN>::hi();		// RS <= HIGH (default data byte)
 
 #if defined(AVR_HARDWARE_SPI)
-	#if ILI9341_SAVE_SPCR
-		uint8_t oldSPCR = SPCR;	// save initial SPCR settings
-	#endif	
 	SPI.begin();
 	SPI.setBitOrder(MSBFIRST);
 	SPI.setDataMode(SPI_MODE0);
 	SPI.setClockDivider(SPI_CLOCK_DIV2);	// 8 MHz (full! speed!) [1 byte every 18 cycles]
 #endif
-	
-#if ILI9341_SAVE_SPCR && defined(AVR_HARDWARE_SPI)
-	save_SPCR = SPCR;	// save SPCR settings
-	SPCR = oldSPCR;		// restore previous SPCR settings (spi_begin/spi_end will switch between the two)
-#endif	
+
+#if ILI9341_SAVE_SPI_SETTINGS && defined(AVR_HARDWARE_SPI)
+	// save our SPI settings
+	save_SPCR = SPCR;
+	save_SPSR = SPSR & 0x01; // SPI2X mask
+#endif
 	spi_begin();
 
 	// Initialization commands for ILI9341 screens
