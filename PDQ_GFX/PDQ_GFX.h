@@ -1150,6 +1150,8 @@ void PDQ_GFX<HW>::getTextBounds(char *str, coord_t x, coord_t y, int16_t *x1, in
 		// End of string
 		if (lineWidth) 							// Add height of last (or only) line
 			y += textsize * 8;
+		if (lineWidth > maxWidth)				// Save widest line
+			maxWidth = lineWidth;
 		*w = maxWidth - 1;						// Don't include last interchar x gap
 		*h = y - *y1;
 
@@ -1266,6 +1268,8 @@ void PDQ_GFX<HW>::getTextBounds(const __FlashStringHelper *str, coord_t x, coord
 		// End of string
 		if (lineWidth) 								// Add height of last (or only) line
 			y += textsize * 8;
+		if (lineWidth > maxWidth)				// Save widest line
+			maxWidth = lineWidth;
 		*w = maxWidth - 1;							// Don't include last interchar x gap
 		*h = y - *y1;
 
