@@ -32,4 +32,4 @@
 // (other pins used are dictated by AVR HW SPI used as shown above)
 
 // other PDQ library options
-#define	ILI9341_SAVE_SPCR	0			// <= 0/1 with 1 to save/restore AVR SPI control register (to "play nice" when other SPI use)
+#define	ILI9341_SAVE_SPI_SETTINGS	0			// <= 0/1 with 1 to save/restore AVR SPI control and statusregisters (required when other SPI devices are in use with other settings)
